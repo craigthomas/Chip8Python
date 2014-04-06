@@ -8,7 +8,7 @@ A simple Chip 8 emulator - see the README file for more information.
 
 import unittest
 
-from chip8cpu import Chip8CPU
+from chip8.cpu import Chip8CPU
 
 # C L A S S E S ###############################################################
 

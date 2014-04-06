@@ -9,9 +9,9 @@ A simple Chip 8 emulator - see the README file for more information.
 import pygame
 import argparse
 
-from chip8config import FONT_FILE, DELAY_INTERVAL
-from chip8cpu import Chip8CPU
-from chip8screen import Chip8Screen
+from config import FONT_FILE, DELAY_INTERVAL
+from cpu import Chip8CPU
+from screen import Chip8Screen
 
 # C O N S T A N T S ###########################################################
 

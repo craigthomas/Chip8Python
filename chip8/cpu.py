@@ -11,7 +11,7 @@ import pygame
 from random import randint
 from pygame import key
 
-from chip8config import MAX_MEMORY, STACK_POINTER_START, KEY_MAPPINGS, \
+from config import MAX_MEMORY, STACK_POINTER_START, KEY_MAPPINGS, \
     PROGRAM_COUNTER_START
 
 # C O N S T A N T S ###########################################################
@@ -365,7 +365,7 @@ class Chip8CPU(object):
 
     def logical_or(self):
         '''
-        8st1 - OR   Vs, Vt
+        8ts1 - OR   Vs, Vt
 
         Perform a logical OR operation between the source and the target
         register, and store the result in the target register. The register
@@ -380,7 +380,7 @@ class Chip8CPU(object):
 
     def logical_and(self):
         '''
-        8st2 - AND  Vs, Vt
+        8ts2 - AND  Vs, Vt
 
         Perform a logical AND operation between the source and the target
         register, and store the result in the target register. The register
@@ -395,7 +395,7 @@ class Chip8CPU(object):
 
     def exclusive_or(self):
         '''
-        8st3 - XOR  Vs, Vt
+        8ts3 - XOR  Vs, Vt
 
         Perform a logical XOR operation between the source and the target
         register, and store the result in the target register. The register
@@ -410,51 +410,51 @@ class Chip8CPU(object):
 
     def add_reg_to_reg(self):
         ''' 
-        8st4 - ADD  Vs, Vt
+        8ts4 - ADD  Vt, Vs
 
         Add the value in the source register to the value in the target
-        register, and store the result in the source register. The register
+        register, and store the result in the target register. The register
         calculations are as follows:
 
            Bits:  15-12     11-8      7-4       3-0
-                  unused   source    target      4
+                  unused   target    source      4
 
         If a carry is generated, set a carry flag in register VF.
         '''
-        source = (self.operand & 0x0F00) >> 8
-        target = (self.operand & 0x00F0) >> 4
+        target = (self.operand & 0x0F00) >> 8
+        source = (self.operand & 0x00F0) >> 4
         temp = self.registers['v'][target] + self.registers['v'][source]
         if temp > 255:
-            self.registers['v'][source] = temp - 256
+            self.registers['v'][target] = temp - 256
             self.registers['v'][0xF] = 1
         else:
-            self.registers['v'][source] = temp
+            self.registers['v'][target] = temp
             self.registers['v'][0xF] = 0
 
     def subtract_reg_from_reg(self):
         '''
-        8st5 - SUB  Vs, Vt
+        8ts5 - SUB  Vt, Vs
 
         Subtract the value in the target register from the value in the source
-        register, and store the result in the source register. The register
+        register, and store the result in the target register. The register
         calculations are as follows:
 
            Bits:  15-12     11-8      7-4       3-0
-                  unused   source    target      5
+                  unused   target    source      5
 
         If a borrow is NOT generated, set a carry flag in register VF.
         '''
-        source = (self.operand & 0x0F00) >> 8
-        target = (self.operand & 0x00F0) >> 4
+        target = (self.operand & 0x0F00) >> 8
+        source = (self.operand & 0x00F0) >> 4
         source_reg = self.registers['v'][source]
         target_reg = self.registers['v'][target]
-        if source_reg > target_reg:
-            source_reg = source_reg - target_reg
+        if target_reg > source_reg:
+            target_reg -= source_reg
             self.registers['v'][0xF] = 1
         else:
-            source_reg = 256 + source_reg - target_reg
+            target_reg = 256 + target_reg - source_reg
             self.registers['v'][0xF] = 0
-        self.registers['v'][source] = source_reg
+        self.registers['v'][target] = target_reg
 
     def right_shift_reg(self):
         '''
@@ -474,28 +474,28 @@ class Chip8CPU(object):
 
     def subtract_reg_from_reg1(self):
         '''
-        8st7 - SUBN Vs, Vt
+        8ts7 - SUBN Vt, Vs
 
         Subtract the value in the source register from the value in the target
-        register, and store the result in the source register. The register
+        register, and store the result in the target register. The register
         calculations are as follows:
 
            Bits:  15-12     11-8      7-4       3-0
-                  unused   source    target      7
+                  unused   target    source      7
 
         If a borrow is NOT generated, set a carry flag in register VF.
         '''
-        source = (self.operand & 0x0F00) >> 8
-        target = (self.operand & 0x00F0) >> 4
+        target = (self.operand & 0x0F00) >> 8
+        source = (self.operand & 0x00F0) >> 4
         source_reg = self.registers['v'][source]
         target_reg = self.registers['v'][target]
-        if target_reg > source_reg:
-            source_reg = target_reg - source_reg
+        if source_reg > target_reg:
+            target_reg = source_reg - target_reg
             self.registers['v'][0xF] = 1
         else:
-            source_reg = 256 + target_reg - source_reg
+            target_reg = 256 + source_reg - target_reg
             self.registers['v'][0xF] = 0
-        self.registers['v'][source] = source_reg
+        self.registers['v'][target] = target_reg
 
     def left_shift_reg(self):
         '''
@@ -575,6 +575,8 @@ class Chip8CPU(object):
 
     def draw_sprite(self):
         ''' 
+        Dxyn - DRAW x, y, num_bytes 
+
         Draws the sprite pointed to in the index register at the specified
         x and y coordinates. Drawing is done via an XOR routine, meaning that
         if the target pixel is already turned on, and a pixel is set to be
