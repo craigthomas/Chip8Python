@@ -4,10 +4,10 @@
 
 ## What is it?
 
-This project is a Chip 8 emulator written in Python 3. The original purpose
+This project is a Chip 8 emulator written in Python 2.7. The original purpose
 of the project was to create a simple learning emulator that was well
 documented and coded in terms that were easy to understand. It was also an
-exercise to learn more about Python 3. The result is a simple command-line
+exercise to learn more about Python. The result is a simple command-line
 based Chip 8 emulator. 
 
 
@@ -21,7 +21,7 @@ Please see the file called LICENSE.
 Simply copy the source files to a directory of your choice. In addition to 
 the source, you will need the following required software packages:
 
-* [Python 3](http://www.python.org)
+* [Python 2.7](http://www.python.org)
 * [pygame](http://http://www.pygame.org)
 
 I strongly recommend creating a virtual environment using the 
@@ -36,19 +36,19 @@ and run the emulator in, without touching your master Python enviornment.
 The command-line interface requires a single argument, which is the full
 path to a Chip 8 ROM:
 
-    python chip8.py /path/to/rom/filename
+    python chip8/yac8e.py /path/to/rom/filename
 
 This will start the emulator with the specified ROM. The emulator also 
 takes optional parameters. The `-s` switch will scale the size of the 
 window (the original size at 1x scale is 64 x 32):
 
-    python chip8.py /path/to/rom/filename -s 10
+    python chip8/yac8e.py /path/to/rom/filename -s 10
 
 The command above will scale the window so that it is 10 times the normal
 size. You may also wish to experiment with the `-d` switch, which instructs
 the emulator to add a delay to every operation that is executed. For example,
 
-    python chip8.py /path/to/rom/filename -d 10
+    python chip8/yac8e.py /path/to/rom/filename -d 10
 
 The command above will add a 10 ms delay to every opcode that is executed.
 This is useful for very fast computers (note that it is difficult to find
@@ -59,7 +59,7 @@ set amount of time).
 
 ## Customization
 
-The file `chip8config.py` contains several variables that can be changed to
+The file `chip8/config.py` contains several variables that can be changed to
 customize the operation of the emulator. The most important one is the 
 `KEY_MAPPINGS` variable. The Chip 8 has 16 keys:
 
