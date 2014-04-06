@@ -34,6 +34,38 @@ class TestChip8Screen(unittest.TestCase):
         '''
         self.assertEqual(SCREEN_HEIGHT, self.screen.get_height())
 
+    def test_all_pixels_off_on_screen_init(self):
+        '''
+        Ensure that the screen starts up blank.
+        '''
+        self.screen.init_display()
+        for xpos in range(SCREEN_WIDTH):
+            for ypos in range(SCREEN_HEIGHT):
+                self.assertEqual(0, self.screen.get_pixel(xpos, ypos))
+
+    def test_write_pixel_turns_on_pixel(self):
+        '''
+        Ensure that the screen pixels can be written.
+        '''
+        self.screen.init_display()
+        for xpos in range(SCREEN_WIDTH):
+            for ypos in range(SCREEN_HEIGHT):
+                self.screen.draw_pixel(xpos, ypos, 1)
+                self.assertEqual(1, self.screen.get_pixel(xpos, ypos))
+
+    def test_clear_screen_clears_pixels(self):
+        '''
+        Ensure that all pixels are off after clearing the screen.
+        '''
+        self.screen.init_display()
+        for xpos in range(SCREEN_WIDTH):
+            for ypos in range(SCREEN_HEIGHT):
+                self.screen.draw_pixel(xpos, ypos, 1)
+        self.screen.clear_screen()
+        for xpos in range(SCREEN_WIDTH):
+            for ypos in range(SCREEN_HEIGHT):
+                self.assertEqual(0, self.screen.get_pixel(xpos, ypos))
+
  
 # M A I N #####################################################################
 
