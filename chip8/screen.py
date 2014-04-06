@@ -37,7 +37,7 @@ class Chip8Screen(object):
     with 2 colors. In this emulator, this translates to color 0 (off) and color
     1 (on). 
     '''
-    def __init__(self, scale_factor):
+    def __init__(self, scale_factor, height = SCREEN_HEIGHT, width = SCREEN_WIDTH):
         '''
         Initializes the main screen. The scale factor is used to modify
         the size of the main screen, since the original resolution of the 
@@ -46,12 +46,12 @@ class Chip8Screen(object):
         @param scale_factor: the scaling to apply to the screen
         @type scale_factor: integer
         '''
-        self.height = 0
-        self.width = 0
+        self.height = height
+        self.width = width
         self.scale_factor = scale_factor
         self.surface = None
 
-    def init_display(self, height = SCREEN_HEIGHT, width = SCREEN_WIDTH):
+    def init_display(self):
         '''
         Attempts to initialize a screen with the specified height and width.
         The screen will by default be of depth SCREEN_DEPTH, and will be
@@ -64,8 +64,6 @@ class Chip8Screen(object):
         @type width: integer
         '''
         display.init()
-        self.height = height
-        self.width = width
         self.surface = display.set_mode(
             ((self.width * self.scale_factor), 
              (self.height * self.scale_factor)),
@@ -134,5 +132,17 @@ class Chip8Screen(object):
         surface.
         '''
         display.flip()       
+
+    def get_width(self):
+        '''
+        Returns the current value of the screen width.
+        '''
+        return self.width
+
+    def get_height(self):
+        '''
+        Returns the current value of the screen height.
+        '''
+        return self.height
 
 # E N D   O F   F I L E ########################################################

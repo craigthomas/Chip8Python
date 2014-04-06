@@ -289,7 +289,7 @@ class TestChip8CPU(unittest.TestCase):
             for target in range(0xF):
                 if source != target:
                     for source_val in range(0, 0xFF, 0x10):
-                        for target_val in range(0xF):
+                        for target_val in range(0, 0xFF, 0x10):
                             self.cpu.registers['v'][source] = source_val
                             self.cpu.registers['v'][target] = target_val
                             self.cpu.operand = source << 8
@@ -404,6 +404,26 @@ class TestChip8CPU(unittest.TestCase):
                             shifted_val)
                     self.assertEqual(self.cpu.registers['v'][0xF], bit_seven)
 
+    def test_skip_if_reg_not_equal_reg(self):
+        '''
+        9st0 - SKNE Vs, Vt
+
+        Test to make sure skip if source not equal target register works.
+        '''
+        for register in range(0x10):
+            self.cpu.registers['v'][register] = register
+
+        for source in range(0x10):
+            for target in range(0x10):
+                self.cpu.operand = source << 8
+                self.cpu.operand += (target << 4)
+                self.cpu.registers['pc'] = 0
+                self.cpu.skip_if_reg_not_equal_reg()
+                if source != target:
+                    self.assertEqual(self.cpu.registers['pc'], 2)
+                else:
+                    self.assertEqual(self.cpu.registers['pc'], 0)
+
     def test_load_index_reg_with_value(self):
         '''
         Annn - LOAD I, nnn
@@ -414,6 +434,20 @@ class TestChip8CPU(unittest.TestCase):
             self.cpu.operand = value
             self.cpu.load_index_reg_with_value()
             self.assertEqual(self.cpu.registers['index'], value & 0x0FFF)
+
+    def test_jump_to_index_plus_value(self):
+        '''
+        Bnnn - JUMP [I] + nnn
+
+        Test jump to index plus value.
+        '''
+        for index in range(0, 0xFFF, 0x10):
+            for value in range(0, 0xFFF, 0x10):
+                self.cpu.registers['index'] = index
+                self.cpu.registers['pc'] = 0
+                self.cpu.operand = value
+                self.cpu.jump_to_index_plus_value()
+                self.assertEqual(index + value, self.cpu.registers['pc'])
 
     def test_generate_random_number(self):
         '''
@@ -478,6 +512,20 @@ class TestChip8CPU(unittest.TestCase):
                 self.cpu.move_reg_into_sound_timer()
                 self.assertEqual(self.cpu.timers['sound'], value)
 
+    def test_add_reg_into_index(self):
+        '''
+        Fs1E - ADD I, Vs
+
+        Test to make sure adding register into index works correctly.
+        '''
+        for register in range(0x10):
+            for index in range(0, 0xFFF, 0x10):
+                self.cpu.registers['index'] = index
+                self.cpu.registers['v'][register] = 0x89
+                self.cpu.operand = (register << 8)
+                self.cpu.add_reg_into_index()
+                self.assertEqual(index + 0x89, self.cpu.registers['index'])
+
     def test_load_index_with_reg_sprite(self):
         '''
         Fn29 - LOAD I, Vn
@@ -511,6 +559,20 @@ class TestChip8CPU(unittest.TestCase):
             self.assertEqual(int(number_as_string[1]), self.cpu.memory[1])
             self.assertEqual(int(number_as_string[2]), self.cpu.memory[2])
 
+    def test_store_regs_in_memory(self):
+        ''' 
+        Fs55 - STOR [I], Vs
+
+        Test to make sure storing registers in memory works.
+        '''
+        for register in range(0x10):
+            self.cpu.registers['v'][register] = register
+            self.cpu.operand = (register << 8)
+            self.cpu.store_regs_in_memory()
+            self.cpu.registers['index'] = 0
+            for counter in range(register): 
+                self.assertEqual(counter, self.cpu.memory[counter])
+
     def test_read_regs_from_memory(self):
         '''
         Fn65 - LOAD Vn, [I]
@@ -538,6 +600,41 @@ class TestChip8CPU(unittest.TestCase):
                 else:
                     self.assertEqual(self.cpu.registers['v'][reg_to_check], 
                             reg_to_check + 0x89)
+
+    def test_load_rom(self): 
+        '''
+        Test to make sure we can read a ROM file into specified memory
+        location. 
+        '''
+        self.cpu.load_rom('test/romfile', 0)
+        self.assertEqual(ord('a'), self.cpu.memory[0])
+        self.assertEqual(ord('b'), self.cpu.memory[1])
+        self.assertEqual(ord('c'), self.cpu.memory[2])
+        self.assertEqual(ord('d'), self.cpu.memory[3])
+        self.assertEqual(ord('e'), self.cpu.memory[4])
+        self.assertEqual(ord('f'), self.cpu.memory[5])
+        self.assertEqual(ord('g'), self.cpu.memory[6])
+
+    def test_decrement_timers_decrements_by_one(self):
+        '''
+        Test to make sure both sound and delay timers will decrement when 
+        called.
+        ''' 
+        self.cpu.timers['delay'] = 2
+        self.cpu.timers['sound'] = 2
+        self.cpu.decrement_timers()
+        self.assertEqual(1, self.cpu.timers['delay'])
+        self.assertEqual(1, self.cpu.timers['sound'])
+
+    def test_decrement_timers_does_not_go_negative(self):
+        '''
+        Test to make sure that the timers will not go below 0.
+        '''
+        self.cpu.timers['delay'] = 0
+        self.cpu.timers['sound'] = 0
+        self.cpu.decrement_timers()
+        self.assertEqual(0, self.cpu.timers['delay'])
+        self.assertEqual(0, self.cpu.timers['sound'])
  
 # M A I N #####################################################################
 
