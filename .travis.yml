@@ -1,6 +1,10 @@
 language: python
 python:
   - "2.7"
-install:
-  - "pip install pygame"
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get build-dep -qq python-pygame
+  - sudo apt-get install -qq python-pygame
 script: nosetests
+virtalenv:
+  system_site_packages: true
