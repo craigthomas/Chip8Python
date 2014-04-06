@@ -1,5 +1,7 @@
 # Yet Another Chip 8 Emulator
 
+[![Build Status](https://travis-ci.org/craigthomas/Chip8Python.svg?branch=master)](https://travis-ci.org/craigthomas/Chip8Python)
+
 ## What is it?
 
 This project is a Chip 8 emulator written in Python 3. The original purpose
