@@ -31,7 +31,42 @@ I strongly recommend creating a virtual environment using the
 [virtualenv](http://pypi.python.org/pypi/virtualenv) builder as well as the
 [virtualenvwrapper](https://bitbucket.org/dhellmann/virtualenvwrapper) tools.
 With these tools, you can easily create a virtual sandbox to install pygame
-and run the emulator in, without touching your master Python enviornment.
+and run the emulator in, without touching your master Python environment.
+
+### Ubuntu Installation
+
+The installation under Ubuntu requires several different steps:
+
+1) Install SDL libraries. The SDL (Simple DirectMedia Layer) libraries are 
+used by PyGame to draw images on the screen. Several other dependencies are
+needed by SDL in order to install PyGame. To install the required SDL 
+libraries (plus dependencies) from the command-line:
+
+        sudo apt-get install libfreetype6-dev libsdl-dev libsdl-image1.2-dev \ 
+        libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl-sound1.2-dev \
+        libportmidi-dev python-dev
+    
+2) Install Mercurial. The `hg` command-line tool is required when using 
+`pip` (see next step) to install the requirements for the project. To
+install Mercurial from the command-line:
+
+        sudo apt-get install mercurial
+    
+3) Install PIP. The `pip` package manager is used for managing Python
+packages. To install `pip` from the command-line:
+
+        sudo apt-get install wget
+        wget https://bootstrap.pypa.io/get-pip.py
+        sudo python ./get-pip.py
+        
+4) Clone (or download) the Chip 8 emulator project:
+
+        sudo apt-get install git
+        git clone git@github.com:craigthomas/Chip8Python.git
+        
+5) Install the requirements from the project:
+
+        pip install -r requirements.txt
 
 
 ## Running
