@@ -6,9 +6,15 @@ A simple Chip 8 emulator - see the README file for more information.
 """
 # I M P O R T S ###############################################################
 
+import mock
+import pygame
 import unittest
 
 from chip8.cpu import Chip8CPU
+
+# C O N S T A N T S ###########################################################
+
+KEYPRESS_TABLE = [0] * 512
 
 # C L A S S E S ###############################################################
 
@@ -21,7 +27,8 @@ class TestChip8CPU(unittest.TestCase):
         """
         Common setup routines needed for all unit tests.
         """
-        self.cpu = Chip8CPU(None)
+        self.screen = mock.MagicMock()
+        self.cpu = Chip8CPU(self.screen)
 
     def test_return_from_subroutine(self):
         """
@@ -651,6 +658,72 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.decrement_timers()
         self.assertEqual(0, self.cpu.timers['delay'])
         self.assertEqual(0, self.cpu.timers['sound'])
+
+    def test_clear_screen(self):
+        self.cpu.operand = 0xE0
+        self.cpu.clear_return()
+        self.screen.clear_screen.assert_called_with()
+
+    def test_clear_return_from_subroutine(self):
+        self.cpu.operand = 0xEE
+        address = 0x500
+        self.cpu.memory[self.cpu.registers['sp']] = address & 0x00FF
+        self.cpu.memory[self.cpu.registers['sp'] + 1] = \
+            (address & 0xFF00) >> 8
+        self.cpu.registers['sp'] += 2
+        self.cpu.registers['pc'] = 0
+        self.cpu.clear_return()
+        self.assertEqual(self.cpu.registers['pc'], address)
+
+    def test_operation_9E_pc_skips_if_key_pressed(self):
+        self.cpu.operand = 0x09E
+        self.cpu.registers['v'][0] = 1
+        self.cpu.registers['pc'] = 0
+        result_table = [False] * 512
+        result_table[pygame.K_KP0 + 1] = True
+        with mock.patch("pygame.key.get_pressed", return_value=result_table) as key_mock:
+            self.cpu.keyboard_routines()
+            self.assertTrue(key_mock.asssert_called)
+            self.assertEqual(2, self.cpu.registers['pc'])
+
+    def test_operation_9E_pc_does_not_skip_if_key_not_pressed(self):
+        self.cpu.operand = 0x09E
+        self.cpu.registers['v'][0] = 1
+        self.cpu.registers['pc'] = 0
+        result_table = [False] * 512
+        with mock.patch("pygame.key.get_pressed", return_value=result_table) as key_mock:
+            self.cpu.keyboard_routines()
+            self.assertTrue(key_mock.asssert_called)
+            self.assertEqual(0, self.cpu.registers['pc'])
+
+    def test_operation_A1_pc_skips_if_key_not_pressed(self):
+        self.cpu.operand = 0x0A1
+        self.cpu.registers['v'][0] = 1
+        self.cpu.registers['pc'] = 0
+        result_table = [False] * 512
+        with mock.patch("pygame.key.get_pressed", return_value=result_table) as key_mock:
+            self.cpu.keyboard_routines()
+            self.assertTrue(key_mock.asssert_called)
+            self.assertEqual(2, self.cpu.registers['pc'])
+
+    def test_operation_A1_pc_does_not_skip_if_key_pressed(self):
+        self.cpu.operand = 0x0A1
+        self.cpu.registers['v'][0] = 1
+        self.cpu.registers['pc'] = 0
+        result_table = [False] * 512
+        result_table[pygame.K_KP0 + 1] = True
+        with mock.patch("pygame.key.get_pressed", return_value=result_table) as key_mock:
+            self.cpu.keyboard_routines()
+            self.assertTrue(key_mock.asssert_called)
+            self.assertEqual(0, self.cpu.registers['pc'])
+
+    def test_draw_zero_bytes_vf_not_set(self):
+        self.cpu.operand = 0x00
+        self.cpu.registers['v'][0xF] = 1
+        self.cpu.draw_sprite()
+        self.assertTrue(self.screen.update_screen.assert_called)
+        self.assertEqual(0, self.cpu.registers['v'][0xF])
+
 
 # M A I N #####################################################################
 
