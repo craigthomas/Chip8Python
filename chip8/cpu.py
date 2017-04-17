@@ -11,7 +11,7 @@ import pygame
 from pygame import key
 from random import randint
 
-from chip8.config import (
+from config import (
     MAX_MEMORY, STACK_POINTER_START, KEY_MAPPINGS, PROGRAM_COUNTER_START
 )
 
