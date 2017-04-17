@@ -8,7 +8,9 @@ A simple Chip 8 emulator - see the README file for more information.
 
 import unittest
 
-from chip8.screen import Chip8Screen, SCREEN_WIDTH, SCREEN_HEIGHT
+from chip8.screen import (
+    Chip8Screen, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_MODE_NORMAL
+)
 
 # C L A S S E S ###############################################################
 
@@ -24,48 +26,73 @@ class TestChip8Screen(unittest.TestCase):
         self.screen = Chip8Screen(2)
 
     def test_get_width(self):
-        """
-        Ensure that the screen width is set correctly.
-        """
-        self.assertEqual(SCREEN_WIDTH, self.screen.get_width())
+        self.assertEqual(SCREEN_WIDTH[SCREEN_MODE_NORMAL], self.screen.get_width())
 
     def test_get_height(self):
-        """
-        Ensure that the screen height is set correctly.
-        """
-        self.assertEqual(SCREEN_HEIGHT, self.screen.get_height())
+        self.assertEqual(SCREEN_HEIGHT[SCREEN_MODE_NORMAL], self.screen.get_height())
 
     def test_all_pixels_off_on_screen_init(self):
-        """
-        Ensure that the screen starts up blank.
-        """
         self.screen.init_display()
-        for x_pos in range(SCREEN_WIDTH):
-            for y_pos in range(SCREEN_HEIGHT):
+        for x_pos in range(SCREEN_WIDTH[SCREEN_MODE_NORMAL]):
+            for y_pos in range(SCREEN_HEIGHT[SCREEN_MODE_NORMAL]):
                 self.assertEqual(0, self.screen.get_pixel(x_pos, y_pos))
 
     def test_write_pixel_turns_on_pixel(self):
-        """
-        Ensure that the screen pixels can be written.
-        """
         self.screen.init_display()
-        for xpos in range(SCREEN_WIDTH):
-            for ypos in range(SCREEN_HEIGHT):
+        for xpos in range(SCREEN_WIDTH[SCREEN_MODE_NORMAL]):
+            for ypos in range(SCREEN_HEIGHT[SCREEN_MODE_NORMAL]):
                 self.screen.draw_pixel(xpos, ypos, 1)
                 self.assertEqual(1, self.screen.get_pixel(xpos, ypos))
 
     def test_clear_screen_clears_pixels(self):
-        """
-        Ensure that all pixels are off after clearing the screen.
-        """
         self.screen.init_display()
-        for x_pos in range(SCREEN_WIDTH):
-            for y_pos in range(SCREEN_HEIGHT):
+        for x_pos in range(SCREEN_WIDTH[SCREEN_MODE_NORMAL]):
+            for y_pos in range(SCREEN_HEIGHT[SCREEN_MODE_NORMAL]):
                 self.screen.draw_pixel(x_pos, y_pos, 1)
         self.screen.clear_screen()
-        for x_pos in range(SCREEN_WIDTH):
-            for y_pos in range(SCREEN_HEIGHT):
+        for x_pos in range(SCREEN_WIDTH[SCREEN_MODE_NORMAL]):
+            for y_pos in range(SCREEN_HEIGHT[SCREEN_MODE_NORMAL]):
                 self.assertEqual(0, self.screen.get_pixel(x_pos, y_pos))
+
+    def test_scroll_down(self):
+        self.screen.init_display()
+        self.screen.draw_pixel(0, 0, 1)
+        self.screen.scroll_down(1)
+        self.assertEqual(0, self.screen.get_pixel(0, 0))
+        self.assertEqual(1, self.screen.get_pixel(0, 1))
+
+    def test_scroll_right(self):
+        self.screen.init_display()
+        self.screen.draw_pixel(0, 0, 1)
+        self.screen.scroll_right()
+        self.assertEqual(0, self.screen.get_pixel(0, 0))
+        self.assertEqual(0, self.screen.get_pixel(1, 0))
+        self.assertEqual(0, self.screen.get_pixel(2, 0))
+        self.assertEqual(0, self.screen.get_pixel(3, 0))
+        self.assertEqual(1, self.screen.get_pixel(4, 0))
+
+    def test_scroll_left(self):
+        self.screen.init_display()
+        self.screen.draw_pixel(63, 0, 1)
+        self.screen.scroll_left()
+        self.assertEqual(0, self.screen.get_pixel(63, 0))
+        self.assertEqual(0, self.screen.get_pixel(62, 0))
+        self.assertEqual(0, self.screen.get_pixel(61, 0))
+        self.assertEqual(0, self.screen.get_pixel(60, 0))
+        self.assertEqual(1, self.screen.get_pixel(59, 0))
+
+    def test_set_extended(self):
+        self.screen.init_display()
+        self.screen.set_extended()
+        self.assertEqual(128, self.screen.width)
+        self.assertEqual(64, self.screen.height)
+
+    def test_set_normal(self):
+        self.screen.init_display()
+        self.screen.set_extended()
+        self.screen.set_normal()
+        self.assertEqual(64, self.screen.width)
+        self.assertEqual(32, self.screen.height)
 
 
 # M A I N #####################################################################

@@ -1,4 +1,4 @@
-# Yet Another Chip 8 Emulator
+# Yet Another (Super) Chip 8 Emulator
 
 [![Build Status](https://travis-ci.org/craigthomas/Chip8Python.svg?branch=master)](https://travis-ci.org/craigthomas/Chip8Python) 
 [![Coverage Status](https://coveralls.io/repos/github/craigthomas/Chip8Python/badge.svg?branch=master)](https://coveralls.io/github/craigthomas/Chip8Python?branch=master) 
@@ -11,7 +11,12 @@ This project is a Chip 8 emulator written in Python 2.7. The original purpose
 of the project was to create a simple learning emulator that was well
 documented and coded in terms that were easy to understand. It was also an
 exercise to learn more about Python. The result is a simple command-line
-based Chip 8 emulator. 
+based Chip 8 emulator.
+
+In addition to supporting Chip 8 ROMs, the emulator also supports the
+Super Chip 8 instruction set. Note that no additional configuration is
+needed to run a Super Chip 8 ROM - simply run the ROM the same way you
+would run a normal Chip 8 ROM.
 
 
 ## License
@@ -21,7 +26,7 @@ Please see the file called LICENSE.
 
 ## Installing
 
-Simply copy the source files to a directory of your choice. In addition to 
+Copy the source files to a directory of your choice. In addition to
 the source, you will need the following required software packages:
 
 * [Python 2.7](http://www.python.org)
@@ -71,19 +76,28 @@ packages. To install `pip` from the command-line:
 
 ## Running
 
+### Running a ROM
+
 The command-line interface requires a single argument, which is the full
 path to a Chip 8 ROM:
 
     python chip8/yac8e.py /path/to/rom/filename
 
-This will start the emulator with the specified ROM. The emulator also 
-takes optional parameters. The `-s` switch will scale the size of the 
-window (the original size at 1x scale is 64 x 32):
+This will start the emulator with the specified ROM.
+
+### Screen Scale
+
+The `-s` switch will scale the size of the window (the original size at 1x
+scale is 64 x 32):
 
     python chip8/yac8e.py /path/to/rom/filename -s 10
 
 The command above will scale the window so that it is 10 times the normal
-size. You may also wish to experiment with the `-d` switch, which instructs
+size.
+
+### Execution Delay
+
+You may also wish to experiment with the `-d` switch, which instructs
 the emulator to add a delay to every operation that is executed. For example,
 
     python chip8/yac8e.py /path/to/rom/filename -d 10
