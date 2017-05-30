@@ -10,13 +10,25 @@ from pygame import display, HWSURFACE, DOUBLEBUF, Color, draw
 
 # C O N S T A N T S ###########################################################
 
+# Various screen modes
+SCREEN_MODE_NORMAL = 'normal'
+SCREEN_MODE_EXTENDED = 'extended'
+
 # The height of the screen in pixels. Note this may be augmented by the
 # scale_factor set by the initializer.
-SCREEN_HEIGHT = 32
+SCREEN_HEIGHT = {
+    SCREEN_MODE_NORMAL: 32,
+    SCREEN_MODE_EXTENDED: 64
+}
+DEFAULT_HEIGHT = SCREEN_HEIGHT[SCREEN_MODE_NORMAL]
 
 # The width of the screen in pixels. Note this may be augmented by the
 # scale_factor set by the initializer.
-SCREEN_WIDTH = 64
+SCREEN_WIDTH = {
+    SCREEN_MODE_NORMAL: 64,
+    SCREEN_MODE_EXTENDED: 128
+}
+DEFAULT_WIDTH = SCREEN_WIDTH[SCREEN_MODE_NORMAL]
 
 # The depth of the screen is the number of bits used to represent the color
 # of a pixel.
@@ -38,7 +50,7 @@ class Chip8Screen(object):
     with 2 colors. In this emulator, this translates to color 0 (off) and color
     1 (on).
     """
-    def __init__(self, scale_factor, height=SCREEN_HEIGHT, width=SCREEN_WIDTH):
+    def __init__(self, scale_factor, height=DEFAULT_HEIGHT, width=DEFAULT_WIDTH):
         """
         Initializes the main screen. The scale factor is used to modify
         the size of the main screen, since the original resolution of the
@@ -136,5 +148,80 @@ class Chip8Screen(object):
         :return: the height of the screen
         """
         return self.height
+
+    @staticmethod
+    def destroy():
+        """
+        Destroys the current screen object.
+        """
+        display.quit()
+
+    def set_extended(self):
+        """
+        Sets the screen mode to extended.
+        """
+        self.destroy()
+        self.height = SCREEN_HEIGHT[SCREEN_MODE_EXTENDED]
+        self.width = SCREEN_WIDTH[SCREEN_MODE_EXTENDED]
+        self.init_display()
+
+    def set_normal(self):
+        """
+        Sets the screen mode to normal.
+        """
+        self.destroy()
+        self.height = SCREEN_HEIGHT[SCREEN_MODE_NORMAL]
+        self.width = SCREEN_WIDTH[SCREEN_MODE_NORMAL]
+        self.init_display()
+
+    def scroll_down(self, num_lines):
+        """
+        Scroll the screen down by num_lines.
+        
+        :param num_lines: the number of lines to scroll down 
+        """
+        for y_pos in xrange(self.height - num_lines, -1, -1):
+            for x_pos in xrange(self.width):
+                pixel_color = self.get_pixel(x_pos, y_pos)
+                self.draw_pixel(x_pos, y_pos + num_lines, pixel_color)
+
+        # Blank out the lines above the ones we scrolled
+        for y_pos in xrange(num_lines):
+            for x_pos in xrange(self.width):
+                self.draw_pixel(x_pos, y_pos, 0)
+
+        self.update()
+
+    def scroll_left(self):
+        """
+        Scroll the screen left 4 pixels.
+        """
+        for y_pos in xrange(self.height):
+            for x_pos in xrange(4, self.width):
+                pixel_color = self.get_pixel(x_pos, y_pos)
+                self.draw_pixel(x_pos - 4, y_pos, pixel_color)
+
+        # Blank out the lines to the right of the ones we just scrolled
+        for y_pos in xrange(self.height):
+            for x_pos in xrange(self.width - 4, self.width):
+                self.draw_pixel(x_pos, y_pos, 0)
+
+        self.update()
+
+    def scroll_right(self):
+        """
+        Scroll the screen right 4 pixels.
+        """
+        for y_pos in xrange(self.height):
+            for x_pos in xrange(self.width - 4, -1, -1):
+                pixel_color = self.get_pixel(x_pos, y_pos)
+                self.draw_pixel(x_pos + 4, y_pos, pixel_color)
+
+        # Blank out the lines to the left of the ones we just scrolled
+        for y_pos in xrange(self.height):
+            for x_pos in xrange(4):
+                self.draw_pixel(x_pos, y_pos, 0)
+
+        self.update()
 
 # E N D   O F   F I L E ########################################################

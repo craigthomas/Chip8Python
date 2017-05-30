@@ -10,7 +10,7 @@ import mock
 import pygame
 import unittest
 
-from chip8.cpu import Chip8CPU
+from chip8.cpu import Chip8CPU, UnknownOpCodeException
 
 # C O N S T A N T S ###########################################################
 
@@ -624,6 +624,45 @@ class TestChip8CPU(unittest.TestCase):
                         self.cpu.registers['v'][reg_to_check],
                         reg_to_check + 0x89)
 
+    def test_store_regs_in_rpl(self):
+        """
+        Fs75 - SRPL Vs
+
+        Test to make sure storing registers in RPL registers works.
+        """
+        for register in range(0x10):
+            self.cpu.registers['v'][register] = register
+            self.cpu.operand = (register << 8)
+            self.cpu.store_regs_in_rpl()
+            for counter in range(register):
+                self.assertEqual(counter, self.cpu.registers['rpl'][counter])
+
+    def test_read_regs_from_rpl(self):
+        """
+        Fn85 - LOAD Vn
+
+        Test that loading register values from RPL register loads the correct values
+        into the correct registers.
+        """
+        for register in range(0xF):
+            self.cpu.registers['rpl'][register] = register + 0x89
+
+        for register in range(0xF):
+            for reg_to_set in range(0xF):
+                self.cpu.registers['v'][reg_to_set] = 0
+
+            self.cpu.operand = 0xF000
+            self.cpu.operand += (register << 8)
+            self.cpu.operand += 0x85
+            self.cpu.read_regs_from_rpl()
+            for reg_to_check in range(0xF):
+                if reg_to_check > register:
+                    self.assertEqual(self.cpu.registers['v'][reg_to_check], 0)
+                else:
+                    self.assertEqual(
+                        self.cpu.registers['v'][reg_to_check],
+                        reg_to_check + 0x89)
+
     def test_load_rom(self):
         """
         Test to make sure we can read a ROM file into specified memory
@@ -723,6 +762,61 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.draw_sprite()
         self.assertTrue(self.screen.update_screen.assert_called)
         self.assertEqual(0, self.cpu.registers['v'][0xF])
+
+    def test_execute_instruction_raises_exception_on_unknown_op_code(self):
+        with self.assertRaises(UnknownOpCodeException) as context:
+            self.cpu.execute_instruction(operand=0x8008)
+        self.assertEqual("Unknown op-code: 8008", context.exception.message)
+
+    def test_execute_instruction_raises_exception_on_unknown_op_code_from_cpu(self):
+        with self.assertRaises(UnknownOpCodeException) as context:
+            self.cpu.operand = 0x8008
+            self.cpu.execute_instruction(operand=0x8008)
+        self.assertEqual("Unknown op-code: 8008", context.exception.message)
+
+    def test_execute_logical_instruction_raises_exception_on_unknown_op_codes(self):
+        for x in xrange(8, 14):
+            self.cpu.operand = x
+            with self.assertRaises(UnknownOpCodeException):
+                self.cpu.execute_logical_instruction()
+
+        # And finally test 15 (F)
+        self.cpu.operand = 15
+        with self.assertRaises(UnknownOpCodeException):
+            self.cpu.execute_logical_instruction()
+
+    def test_misc_routines_raises_exception_on_unknown_op_codes(self):
+        self.cpu.operand = 0x0
+        with self.assertRaises(UnknownOpCodeException) as context:
+            self.cpu.misc_routines()
+        self.assertEqual("Unknown op-code: 0", context.exception.message)
+
+    def test_scroll_down_called(self):
+        self.cpu.operand = 0x00C4
+        self.cpu.clear_return()
+        self.screen.scroll_down.assert_called_with(4)
+
+    def test_scroll_right_called(self):
+        self.cpu.operand = 0x00FB
+        self.cpu.clear_return()
+        self.assertTrue(self.screen.scroll_right.assert_called)
+
+    def test_scroll_left_called(self):
+        self.cpu.operand = 0x00FC
+        self.cpu.clear_return()
+        self.assertTrue(self.screen.scroll_left.assert_called)
+
+    def test_set_extended(self):
+        self.cpu.operand = 0x00FF
+        self.cpu.clear_return()
+        self.assertTrue(self.screen.set_extended.assert_called)
+        self.assertEqual("extended", self.cpu.mode)
+
+    def test_disable_extended(self):
+        self.cpu.operand = 0x00FE
+        self.cpu.clear_return()
+        self.assertTrue(self.screen.set_normal.assert_called)
+        self.assertEqual("normal", self.cpu.mode)
 
 
 # M A I N #####################################################################

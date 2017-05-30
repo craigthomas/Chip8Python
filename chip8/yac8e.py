@@ -59,7 +59,9 @@ def main_loop(args):
 
     while running:
         pygame.time.wait(args.op_delay)
-        cpu.execute_instruction()
+        operand = cpu.execute_instruction()
+
+        # Check for events
         for event in pygame.event.get():
             if event.type == TIMER:
                 cpu.decrement_timers()
@@ -69,6 +71,10 @@ def main_loop(args):
                 keys_pressed = pygame.key.get_pressed()
                 if keys_pressed[pygame.K_q]:
                     running = False
+
+        # Check to see if CPU is in exit state
+        if operand == 0x00FD:
+            running = False
 
 # M A I N #####################################################################
 

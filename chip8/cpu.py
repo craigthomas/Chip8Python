@@ -17,10 +17,22 @@ from config import (
 
 # C O N S T A N T S ###########################################################
 
-# The total  number of registers in the Chip 8 CPU
+# The total number of registers in the Chip 8 CPU
 NUM_REGISTERS = 0x10
 
+# The various modes of operation
+MODE_NORMAL = 'normal'
+MODE_EXTENDED = 'extended'
+
 # C L A S S E S ###############################################################
+
+
+class UnknownOpCodeException(Exception):
+    """
+    A class to raise unknown op code exceptions.
+    """
+    def __init__(self, op_code):
+        Exception.__init__(self, "Unknown op-code: {:X}".format(op_code))
 
 
 class Chip8CPU(object):
@@ -65,7 +77,8 @@ class Chip8CPU(object):
             'v': [],
             'index': 0,
             'sp': 0,
-            'pc': 0
+            'pc': 0,
+            'rpl': []
         }
 
         # The operation_lookup table is executed according to the most
@@ -109,17 +122,21 @@ class Chip8CPU(object):
         # CPU starts with F (e.g. operand Fn07 would call
         # self.move_delay_timer_into_reg)
         self.misc_routine_lookup = {
-            0x07: self.move_delay_timer_into_reg,   # Ft07 - LOAD Vt, DELAY
-            0x0A: self.wait_for_keypress,           # Ft0A - KEYD Vt
-            0x15: self.move_reg_into_delay_timer,   # Fs15 - LOAD DELAY, Vs
-            0x18: self.move_reg_into_sound_timer,   # Fs18 - LOAD SOUND, Vs
-            0x1E: self.add_reg_into_index,          # Fs1E - ADD  I, Vs
-            0x29: self.load_index_with_reg_sprite,  # Fs29 - LOAD I, Vs
-            0x33: self.store_bcd_in_memory,         # Fs33 - BCD
-            0x55: self.store_regs_in_memory,        # Fs55 - STOR [I], Vs
-            0x65: self.read_regs_from_memory,       # Fs65 - LOAD Vs, [I]
+            0x07: self.move_delay_timer_into_reg,            # Ft07 - LOAD Vt, DELAY
+            0x0A: self.wait_for_keypress,                    # Ft0A - KEYD Vt
+            0x15: self.move_reg_into_delay_timer,            # Fs15 - LOAD DELAY, Vs
+            0x18: self.move_reg_into_sound_timer,            # Fs18 - LOAD SOUND, Vs
+            0x1E: self.add_reg_into_index,                   # Fs1E - ADD  I, Vs
+            0x29: self.load_index_with_reg_sprite,           # Fs29 - LOAD I, Vs
+            0x30: self.load_index_with_extended_reg_sprite,  # Fs30 - LOAD I, Vs
+            0x33: self.store_bcd_in_memory,                  # Fs33 - BCD
+            0x55: self.store_regs_in_memory,                 # Fs55 - STOR [I], Vs
+            0x65: self.read_regs_from_memory,                # Fs65 - LOAD Vs, [I]
+            0x75: self.store_regs_in_rpl,                    # Fs75 - SRPL Vs
+            0x85: self.read_regs_from_rpl,                   # Fs85 - LRPL Vs
         }
         self.operand = 0
+        self.mode = MODE_NORMAL
         self.screen = screen
         self.memory = bytearray(MAX_MEMORY)
         self.reset()
@@ -140,6 +157,7 @@ class Chip8CPU(object):
         function, the program counter is increased by 2.
 
         :param operand: the operand to execute
+        :return: returns the operand executed
         """
         if operand:
             self.operand = operand
@@ -149,10 +167,8 @@ class Chip8CPU(object):
             self.operand += int(self.memory[self.registers['pc'] + 1])
             self.registers['pc'] += 2
         operation = (self.operand & 0xF000) >> 12
-        try:
-            self.operation_lookup[operation]()
-        except KeyError:
-            pass
+        self.operation_lookup[operation]()
+        return self.operand
 
     def execute_logical_instruction(self):
         """
@@ -163,7 +179,7 @@ class Chip8CPU(object):
         try:
             self.logical_operation_lookup[operation]()
         except KeyError:
-            pass
+            raise UnknownOpCodeException(self.operand)
 
     def keyboard_routines(self):
         """
@@ -206,22 +222,48 @@ class Chip8CPU(object):
         try:
             self.misc_routine_lookup[operation]()
         except KeyError:
-            pass
+            raise UnknownOpCodeException(self.operand)
 
     def clear_return(self):
         """
         Opcodes starting with a 0 are one of the following instructions:
 
             0nnn - Jump to machine code function (ignored)
+            00Cn - Scroll n pixels down
             00E0 - Clear the display
             00EE - Return from subroutine
+            00FB - Scroll 4 pixels right
+            00FC - Scroll 4 pixels left
+            00FD - Exit
+            00FE - Disable extended mode
+            00FF - Enable extended mode
         """
         operation = self.operand & 0x00FF
+        sub_operation = operation & 0x00F0
+        if sub_operation == 0x00C0:
+            num_lines = self.operand & 0x000F
+            self.screen.scroll_down(num_lines)
+
         if operation == 0x00E0:
             self.screen.clear_screen()
 
         if operation == 0x00EE:
             self.return_from_subroutine()
+
+        if operation == 0x00FB:
+            self.screen.scroll_right()
+
+        if operation == 0x00FC:
+            self.screen.scroll_left()
+
+        if operation == 0x00FD:
+            pass
+
+        if operation == 0x00FE:
+            self.disable_extended_mode()
+
+        if operation == 0x00FF:
+            self.enable_extended_mode()
 
     def return_from_subroutine(self):
         """
@@ -607,14 +649,27 @@ class Chip8CPU(object):
         num_bytes = self.operand & 0x000F
         self.registers['v'][0xF] = 0
 
-        for y_index in range(num_bytes):
+        if self.mode == MODE_EXTENDED and num_bytes == 0:
+            self.draw_extended(x_pos, y_pos, 16)
+        else:
+            self.draw_normal(x_pos, y_pos, num_bytes)
+
+    def draw_normal(self, x_pos, y_pos, num_bytes):
+        """
+        Draws a sprite on the screen while in NORMAL mode.
+        
+        :param x_pos: the X position of the sprite
+        :param y_pos: the Y position of the sprite
+        :param num_bytes: the number of bytes to draw
+        """
+        for y_index in xrange(num_bytes):
 
             color_byte = bin(self.memory[self.registers['index'] + y_index])
             color_byte = color_byte[2:].zfill(8)
             y_coord = y_pos + y_index
             y_coord = y_coord % self.screen.height
 
-            for x_index in range(8):
+            for x_index in xrange(8):
 
                 x_coord = x_pos + x_index
                 x_coord = x_coord % self.screen.width
@@ -630,6 +685,45 @@ class Chip8CPU(object):
                     color = 1
 
                 self.screen.draw_pixel(x_coord, y_coord, color)
+
+        self.screen.update()
+
+    def draw_extended(self, x_pos, y_pos, num_bytes):
+        """
+        Draws a sprite on the screen while in EXTENDED mode. Sprites in this
+        mode are assumed to be 16x16 pixels. This means that two bytes will
+        be read from the memory location, and 16 two-byte sequences in total
+        will be read.
+
+        :param x_pos: the X position of the sprite
+        :param y_pos: the Y position of the sprite
+        :param num_bytes: the number of bytes to draw
+        """
+        for y_index in xrange(num_bytes):
+
+            for x_byte in xrange(2):
+
+                color_byte = bin(self.memory[self.registers['index'] + (y_index * 2) + x_byte])
+                color_byte = color_byte[2:].zfill(8)
+                y_coord = y_pos + y_index
+                y_coord = y_coord % self.screen.height
+
+                for x_index in range(8):
+
+                    x_coord = x_pos + x_index + (x_byte * 8)
+                    x_coord = x_coord % self.screen.width
+
+                    color = int(color_byte[x_index])
+                    current_color = self.screen.get_pixel(x_coord, y_coord)
+
+                    if color == 1 and current_color == 1:
+                        self.registers['v'][0xF] = 1
+                        color = 0
+
+                    elif color == 0 and current_color == 1:
+                        color = 1
+
+                    self.screen.draw_pixel(x_coord, y_coord, color)
 
         self.screen.update()
 
@@ -709,6 +803,21 @@ class Chip8CPU(object):
         """
         source = (self.operand & 0x0F00) >> 8
         self.registers['index'] = self.registers['v'][source] * 5
+
+    def load_index_with_extended_reg_sprite(self):
+        """
+        Fs30 - LOAD I, Vs
+
+        Load the index with the sprite indicated in the source register. All
+        sprites are 10 bytes long, so the location of the specified sprite
+        is its index multiplied by 10. The register calculation is as
+        follows:
+
+           Bits:  15-12     11-8      7-4       3-0
+                  unused    source     2         9
+        """
+        source = (self.operand & 0x0F00) >> 8
+        self.registers['index'] = self.registers['v'][source] * 10
 
     def add_reg_into_index(self):
         """
@@ -790,6 +899,40 @@ class Chip8CPU(object):
             self.registers['v'][counter] = \
                     self.memory[self.registers['index'] + counter]
 
+    def store_regs_in_rpl(self):
+        """
+        Fs75 - SRPL Vs
+
+        Stores all or fewer of the V registers in the RPL store.
+
+           Bits:  15-12     11-8      7-4       3-0
+                  unused    source     7         5
+
+        The source register contains the number of V registers to store.
+        For example, to store all of the V registers, the source register
+        would contain the value 'F'.
+        """
+        source = (self.operand & 0x0F00) >> 8
+        for counter in range(source + 1):
+            self.registers['rpl'][counter] = self.registers['v'][counter]
+
+    def read_regs_from_rpl(self):
+        """
+        Fs85 - LRPL Vs
+
+        Read all or fewer of the V registers from the RPL store.
+
+           Bits:  15-12     11-8      7-4       3-0
+                  unused    source     6         5
+
+        The source register contains the number of V registers to load. For
+        example, to load all of the V registers, the source register would
+        contain the value 'F'.
+        """
+        source = (self.operand & 0x0F00) >> 8
+        for counter in range(source + 1):
+            self.registers['v'][counter] = self.registers['rpl'][counter]
+
     def reset(self):
         """
         Reset the CPU by blanking out all registers, and reseting the stack
@@ -799,6 +942,7 @@ class Chip8CPU(object):
         self.registers['pc'] = PROGRAM_COUNTER_START
         self.registers['sp'] = STACK_POINTER_START
         self.registers['index'] = 0
+        self.registers['rpl'] = [0] * NUM_REGISTERS
         self.timers['delay'] = 0
         self.timers['sound'] = 0
 
@@ -825,5 +969,19 @@ class Chip8CPU(object):
 
         if self.timers['sound'] != 0:
             self.timers['sound'] -= 1
+
+    def enable_extended_mode(self):
+        """
+        Set extended mode.
+        """
+        self.screen.set_extended()
+        self.mode = MODE_EXTENDED
+
+    def disable_extended_mode(self):
+        """
+        Disables extended mode.
+        """
+        self.screen.set_normal()
+        self.mode = MODE_NORMAL
 
 # E N D   O F   F I L E ########################################################
