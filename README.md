@@ -2,8 +2,7 @@
 
 [![Build Status](https://travis-ci.org/craigthomas/Chip8Python.svg?branch=master)](https://travis-ci.org/craigthomas/Chip8Python) 
 [![Coverage Status](https://coveralls.io/repos/github/craigthomas/Chip8Python/badge.svg?branch=master)](https://coveralls.io/github/craigthomas/Chip8Python?branch=master) 
-[![Codacy Badge](https://www.codacy.com/project/badge/f100b6deb9bf4729a2c55ef12fb695c9)](https://www.codacy.com/app/craig-thomas/Chip8Python)
-[![Dependency Status](https://www.versioneye.com/user/projects/55d8425b8d9c4b0021000012/badge.svg)](https://www.versioneye.com/user/projects/55d8425b8d9c4b0021000012)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/f100b6deb9bf4729a2c55ef12fb695c9)](https://www.codacy.com/app/craig-thomas/Chip8Python?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=craigthomas/Chip8Python&amp;utm_campaign=Badge_Grade)
 
 ## What is it?
 
