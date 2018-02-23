@@ -32,6 +32,6 @@ before_install:
 virtalenv:
   system_site_packages: true
 script: 
-  - nosetests --with-coverage --cover-package=chip8
+  - nosetests -v --with-coverage --cover-package=chip8
 after_success:
-  - coveralls
+  - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
