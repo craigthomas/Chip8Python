@@ -140,6 +140,7 @@ class Chip8CPU(object):
         self.screen = screen
         self.memory = bytearray(MAX_MEMORY)
         self.reset()
+        self.running = True
 
     def __str__(self):
         val = 'PC: {:4X}  OP: {:4X}\n'.format(
@@ -257,7 +258,7 @@ class Chip8CPU(object):
             self.screen.scroll_left()
 
         if operation == 0x00FD:
-            pass
+            self.running = False
 
         if operation == 0x00FE:
             self.disable_extended_mode()
@@ -667,12 +668,12 @@ class Chip8CPU(object):
             color_byte = bin(self.memory[self.registers['index'] + y_index])
             color_byte = color_byte[2:].zfill(8)
             y_coord = y_pos + y_index
-            y_coord = y_coord % self.screen.height
+            y_coord = y_coord % self.screen.get_height()
 
             for x_index in xrange(8):
 
                 x_coord = x_pos + x_index
-                x_coord = x_coord % self.screen.width
+                x_coord = x_coord % self.screen.get_width()
 
                 color = int(color_byte[x_index])
                 current_color = self.screen.get_pixel(x_coord, y_coord)

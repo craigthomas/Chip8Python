@@ -55,26 +55,22 @@ def main_loop(args):
     cpu.load_rom(FONT_FILE, 0)
     cpu.load_rom(args.rom)
     pygame.time.set_timer(TIMER, DELAY_INTERVAL)
-    running = True
 
-    while running:
+    while cpu.running:
         pygame.time.wait(args.op_delay)
-        operand = cpu.execute_instruction()
+        cpu.execute_instruction()
 
         # Check for events
         for event in pygame.event.get():
             if event.type == TIMER:
                 cpu.decrement_timers()
             if event.type == pygame.QUIT:
-                running = False
+                cpu.running = False
             if event.type == pygame.KEYDOWN:
                 keys_pressed = pygame.key.get_pressed()
                 if keys_pressed[pygame.K_q]:
-                    running = False
+                    cpu.running = False
 
-        # Check to see if CPU is in exit state
-        if operand == 0x00FD:
-            running = False
 
 # M A I N #####################################################################
 
