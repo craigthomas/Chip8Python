@@ -1,3 +1,3 @@
-hg+http://bitbucket.org/pygame/pygame
+pygame
 coveralls
 mock

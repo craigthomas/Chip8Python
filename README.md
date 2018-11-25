@@ -3,7 +3,22 @@
 [![Build Status](https://travis-ci.org/craigthomas/Chip8Python.svg?branch=master)](https://travis-ci.org/craigthomas/Chip8Python) 
 [![codecov](https://codecov.io/gh/craigthomas/Chip8Python/branch/master/graph/badge.svg)](https://codecov.io/gh/craigthomas/Chip8Python) 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f100b6deb9bf4729a2c55ef12fb695c9)](https://www.codacy.com/app/craig-thomas/Chip8Python?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=craigthomas/Chip8Python&amp;utm_campaign=Badge_Grade)
-[![Dependency Status](https://dependencyci.com/github/craigthomas/Chip8Python/badge)](https://dependencyci.com/github/craigthomas/Chip8Python)
+[![Dependency Status](https://dependencyci.com/github/craigthomas/Chip8Python/badge?style=flat)](https://dependencyci.com/github/craigthomas/Chip8Python)
+
+
+## Table of Contents
+
+1. [What is it?](#what-is-it)
+2. [License](#license)
+3. [Installing](#installing)
+    1. [Ubuntu Installation](#ubuntu-installation)
+    2. [Windows Installation](#windows)
+4. [Running](#running)
+    1. [Running a ROM](#running-a-rom)
+    2. [Screen Scale](#screen-scale)
+    3. [Execution Delay](#execution-delay)
+5. [Customization](#customization)
+6. [Further Documentation](#further-documentation)
 
 ## What is it?
 
@@ -38,40 +53,107 @@ I strongly recommend creating a virtual environment using the
 With these tools, you can easily create a virtual sandbox to install pygame
 and run the emulator in, without touching your master Python environment.
 
+
 ### Ubuntu Installation
 
 The installation under Ubuntu requires several different steps:
 
-1) Install SDL libraries. The SDL (Simple DirectMedia Layer) libraries are 
-used by PyGame to draw images on the screen. Several other dependencies are
-needed by SDL in order to install PyGame. To install the required SDL 
-libraries (plus dependencies) from the command-line:
+1. Install SDL libraries. The SDL (Simple DirectMedia Layer) libraries are used by PyGame to draw 
+images on the screen. Several other dependencies are needed by SDL in order to install PyGame. 
+To install the required SDL libraries (plus dependencies) from the command-line:
 
-        sudo apt-get install libfreetype6-dev libsdl-dev libsdl-image1.2-dev \ 
-        libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl-sound1.2-dev \
-        libportmidi-dev python-dev
-    
-2) Install Mercurial. The `hg` command-line tool is required when using 
-`pip` (see next step) to install the requirements for the project. To
-install Mercurial from the command-line:
+    ```
+    sudo apt-get install libfreetype6-dev libsdl-dev libsdl-image1.2-dev \ 
+    libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl-sound1.2-dev \
+    libportmidi-dev python-dev
+    ```
 
-        sudo apt-get install mercurial
-    
-3) Install PIP. The `pip` package manager is used for managing Python
-packages. To install `pip` from the command-line:
+2. Install PIP. The `pip` package manager is used for managing Python packages. To install `pip` 
+from the command-line:
 
-        sudo apt-get install wget
-        wget https://bootstrap.pypa.io/get-pip.py
-        sudo python ./get-pip.py
-        
-4) Clone (or download) the Chip 8 emulator project:
+    ```
+    sudo apt-get install python-pip
+    ```
 
-        sudo apt-get install git
-        git clone git@github.com:craigthomas/Chip8Python.git
-        
-5) Install the requirements from the project:
+3. (*Optional*) Install virtual environment support for Python:
 
-        pip install -r requirements.txt
+    1. Install virtual environment support:
+
+    ```
+    pip install virtualenv
+    pip install virtualenvwrapper
+    ```
+
+    2. First you must update your `.bashrc` file in the your home directory and add a few lines 
+    to the bottom of that file:
+
+    ```
+    cat >> ~/.bashrc << EOF
+    export WORKON_HOME=$HOME/.virtualenvs
+    source /usr/local/bin/virtualenvwrapper.sh
+    EOF
+    ```
+
+    3. Next you must source the `.bashrc` file:
+
+    ```
+    source ~/.bashrc
+    ```
+
+    4. Finally you can create the environment:
+
+    ```
+    mkvirtualenv chip8
+    ```
+
+5. Clone (or download) the Chip 8 emulator project:
+
+    ```
+    sudo apt-get install git
+    git clone https://github.com/craigthomas/Chip8Python.git
+    ```
+
+6. Install the requirements from the project:
+
+    ```
+    pip install -r requirements.txt
+    ```
+
+
+### Windows Installation
+
+1. Download and install [Python 2.7.15 for Windows](https://www.python.org/downloads/release/python-2715/). 
+Make sure that `pip` and `Add python.exe to Path` options are checked when performing the installation.
+
+2. (*Optional*) Install virtual environment support for Python. Run the following commands from a command prompt:
+
+    1. Install the virtual environment wrapper:
+
+    ```
+    pip install virtualenv
+    pip install virtualenvwrapper-win
+    ```
+
+    2. Create a new environment for the Chip 8 emulator:
+
+    ```
+    mkvirtualenv chip8
+    ```
+
+4. Install [Git for Windows](https://git-scm.com/download/win).
+
+5. Clone (or download) the source files from GitHub. Run the following commands in a command prompt window:
+
+    ```
+    git clone https://github.com/craigthomas/Chip8Python.git
+    ```
+
+6. Install the requirements for the project. Run the following commands in a command prompt window 
+in the directory where you cloned or downloaded the source files:
+
+    ```
+    pip install -r requirements.txt
+    ```
 
 
 ## Running
@@ -79,11 +161,16 @@ packages. To install `pip` from the command-line:
 ### Running a ROM
 
 The command-line interface requires a single argument, which is the full
-path to a Chip 8 ROM:
+path to a Chip 8 ROM. Run the following command in the directory where you 
+cloned or downloaded the source files:
 
     python chip8/yac8e.py /path/to/rom/filename
 
-This will start the emulator with the specified ROM.
+This will start the emulator with the specified ROM. Note that if you created 
+a virtual environment as detailed above, you will need to `workon` that 
+environment before starting the emulator:
+
+    workon chip8
 
 ### Screen Scale
 
