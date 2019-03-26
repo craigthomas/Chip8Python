@@ -18,6 +18,8 @@
     2. [Screen Scale](#screen-scale)
     3. [Execution Delay](#execution-delay)
 5. [Customization](#customization)
+    1. [Keys](#keys)
+    2. [Debug Keys](#debug-keys)
 6. [Further Documentation](#further-documentation)
 
 ## What is it?
@@ -45,7 +47,7 @@ Copy the source files to a directory of your choice. In addition to
 the source, you will need the following required software packages:
 
 * [Python 2.7](http://www.python.org)
-* [pygame](http://http://www.pygame.org)
+* [pygame](http://www.pygame.org)
 
 I strongly recommend creating a virtual environment using the 
 [virtualenv](http://pypi.python.org/pypi/virtualenv) builder as well as the
@@ -199,18 +201,46 @@ set amount of time).
 ## Customization
 
 The file `chip8/config.py` contains several variables that can be changed to
-customize the operation of the emulator. The most important one is the 
-`KEY_MAPPINGS` variable. The Chip 8 has 16 keys:
+customize the operation of the emulator.  The Chip 8 has 16 keys:
 
-* The keys 0-9
-* The letters A-F
+### Keys
 
-The default configuration of the emulator will map the keypad numeric keys
-0-9 to the keys 0-9, and the keyboard keys a-f onto A-F. If you wish to 
-configure a different key-mapping, simply change the variable to reflect
-the mapping that you want. The [pygame.key](http://pygame.readthedocs.org/en/latest/ref/key.html)
-documentation contains a list of all the valid constants for keyboard
-key values.
+The original Chip 8 had a keypad with the numbered keys 0 - 9 and A - F (16
+keys in total). Without any modifications to the emulator, the keys are mapped
+as follows:
+
+| Chip 8 Key | Keyboard Key |
+| :--------: | :----------: |
+| `1`        | `4`          |
+| `2`        | `5`          |
+| `3`        | `6`          |
+| `4`        | `7`          |
+| `5`        | `R`          |
+| `6`        | `T`          |
+| `7`        | `Y`          |
+| `8`        | `U`          |
+| `9`        | `F`          |
+| `0`        | `G`          |
+| `A`        | `H`          |
+| `B`        | `J`          |
+| `C`        | `V`          |
+| `D`        | `B`          |
+| `E`        | `N`          |
+| `F`        | `M`          |
+
+If you wish to configure a different key-mapping, simply change the `KEY_MAPPINGS` variable
+in the configuration file to reflect the mapping that you want. The
+[pygame.key](https://www.pygame.org/docs/ref/key.html) documentation contains a
+list of all the valid constants for keyboard key values.
+
+### Debug Keys
+
+In addition to the key mappings specified in the configuration file, there are additional
+keys that impact the execution of the emulator.
+
+| Keyboard Key | Effect |
+| :----------: | ------ |
+| `ESC`        | Quits the emulator             |
 
 
 ## Further Documentation

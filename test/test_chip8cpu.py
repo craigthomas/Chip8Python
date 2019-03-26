@@ -13,7 +13,7 @@ import unittest
 from mock import patch, call
 
 from chip8.cpu import Chip8CPU, UnknownOpCodeException, MODE_EXTENDED
-from chip8.screen import Chip8Screen, DEFAULT_HEIGHT, DEFAULT_WIDTH
+from chip8.screen import Chip8Screen
 
 # C O N S T A N T S ###########################################################
 
@@ -281,6 +281,7 @@ class TestChip8CPU(unittest.TestCase):
             for value in range(0, 0xFF, 0x10):
                 self.cpu.registers['v'][register] = value
                 self.cpu.operand = register << 8
+                self.cpu.operand = self.cpu.operand + (register << 4)
                 for index in range(1, 8):
                     shifted_val = value >> index
                     self.cpu.registers['v'][0xF] = 0
@@ -319,6 +320,7 @@ class TestChip8CPU(unittest.TestCase):
             for value in range(256):
                 self.cpu.registers['v'][register] = value
                 self.cpu.operand = register << 8
+                self.cpu.operand = self.cpu.operand + (register << 4)
                 for index in range(1, 8):
                     shifted_val = value << index
                     bit_seven = (shifted_val & 0x100) >> 9
@@ -530,7 +532,7 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.registers['v'][0] = 1
         self.cpu.registers['pc'] = 0
         result_table = [False] * 512
-        result_table[pygame.K_KP0 + 1] = True
+        result_table[pygame.K_4] = True
         with mock.patch("pygame.key.get_pressed", return_value=result_table) as key_mock:
             self.cpu.keyboard_routines()
             self.assertTrue(key_mock.asssert_called)
@@ -561,7 +563,7 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.registers['v'][0] = 1
         self.cpu.registers['pc'] = 0
         result_table = [False] * 512
-        result_table[pygame.K_KP0 + 1] = True
+        result_table[pygame.K_4] = True
         with mock.patch("pygame.key.get_pressed", return_value=result_table) as key_mock:
             self.cpu.keyboard_routines()
             self.assertTrue(key_mock.asssert_called)

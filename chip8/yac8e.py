@@ -1,5 +1,5 @@
 """
-Copyright (C) 2012 Craig Thomas
+Copyright (C) 2012-2019 Craig Thomas
 This project uses an MIT style license - see LICENSE for details.
 
 A simple Chip 8 emulator - see the README file for more information.
@@ -68,7 +68,7 @@ def main_loop(args):
                 cpu.running = False
             if event.type == pygame.KEYDOWN:
                 keys_pressed = pygame.key.get_pressed()
-                if keys_pressed[pygame.K_q]:
+                if keys_pressed[pygame.K_ESCAPE]:
                     cpu.running = False
 
 
