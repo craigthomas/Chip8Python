@@ -1,5 +1,5 @@
 """
-Copyright (C) 2012 Craig Thomas
+Copyright (C) 2012-2019 Craig Thomas
 This project uses an MIT style license - see LICENSE for details.
 
 A Chip 8 CPU - see the README file for more information.
@@ -495,18 +495,20 @@ class Chip8CPU(object):
 
     def right_shift_reg(self):
         """
-        8s06 - SHR  Vs
+        8st6 - SHR  Vs, Vt
 
-        Shift the bits in the specified register 1 bit to the right. Bit
-        0 will be shifted into register vf. The register calculation is
-        as follows:
+        Shift the bits in the source register 1 bit to the right and
+        stores the result in the target register, leaving source
+        with its original value. Bit 0 will be shifted into register
+        vf. The register calculation is as follows:
 
            Bits:  15-12     11-8      7-4       3-0
-                  unused   source      0         6
+                  unused   source    target      6
         """
         source = (self.operand & 0x0F00) >> 8
+        target = (self.operand & 0x00F0) >> 4
         bit_zero = self.registers['v'][source] & 0x1
-        self.registers['v'][source] = self.registers['v'][source] >> 1
+        self.registers['v'][target] = self.registers['v'][source] >> 1
         self.registers['v'][0xF] = bit_zero
 
     def subtract_reg_from_reg1(self):
@@ -536,18 +538,20 @@ class Chip8CPU(object):
 
     def left_shift_reg(self):
         """
-        8s0E - SHL  Vs
+        8stE - SHL  Vs, Vt
 
-        Shift the bits in the specified register 1 bit to the left. Bit
-        7 will be shifted into register vf. The register calculation is
-        as follows:
+        Shift the bits in the source register 1 bit to the left and
+        stores the result in the target register, leaving the source
+        register with its original value. Bit 7 will be shifted into
+        register vf. The register calculation is as follows:
 
            Bits:  15-12     11-8      7-4       3-0
-                  unused   source      0         E
+                  unused   source    target      E
         """
         source = (self.operand & 0x0F00) >> 8
+        target = (self.operand & 0x00F0) >> 4
         bit_seven = (self.registers['v'][source] & 0x80) >> 8
-        self.registers['v'][source] = self.registers['v'][source] << 1
+        self.registers['v'][target] = self.registers['v'][source] << 1
         self.registers['v'][0xF] = bit_seven
 
     def skip_if_reg_not_equal_reg(self):
