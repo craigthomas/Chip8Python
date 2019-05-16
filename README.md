@@ -4,6 +4,7 @@
 [![codecov](https://codecov.io/gh/craigthomas/Chip8Python/branch/master/graph/badge.svg)](https://codecov.io/gh/craigthomas/Chip8Python) 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f100b6deb9bf4729a2c55ef12fb695c9)](https://www.codacy.com/app/craig-thomas/Chip8Python?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=craigthomas/Chip8Python&amp;utm_campaign=Badge_Grade)
 [![Dependency Status](https://dependencyci.com/github/craigthomas/Chip8Python/badge?style=flat)](https://dependencyci.com/github/craigthomas/Chip8Python)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 
 ## Table of Contents
