@@ -1,10 +1,10 @@
 # Yet Another (Super) Chip 8 Emulator
 
-[![Build Status](https://travis-ci.org/craigthomas/Chip8Python.svg?branch=master)](https://travis-ci.org/craigthomas/Chip8Python) 
-[![codecov](https://codecov.io/gh/craigthomas/Chip8Python/branch/master/graph/badge.svg)](https://codecov.io/gh/craigthomas/Chip8Python) 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/f100b6deb9bf4729a2c55ef12fb695c9)](https://www.codacy.com/app/craig-thomas/Chip8Python?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=craigthomas/Chip8Python&amp;utm_campaign=Badge_Grade)
-[![Dependency Status](https://dependencyci.com/github/craigthomas/Chip8Python/badge?style=flat)](https://dependencyci.com/github/craigthomas/Chip8Python)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/travis/craigthomas/Chip8Python?style=flat-square)](https://travis-ci.org/craigthomas/Chip8Python) 
+[![Codecov](https://img.shields.io/codecov/c/gh/craigthomas/Chip8Python?style=flat-square)](https://codecov.io/gh/craigthomas/Chip8Python) 
+[![Codacy Badge](https://img.shields.io/codacy/grade/f100b6deb9bf4729a2c55ef12fb695c9?style=flat-square)](https://www.codacy.com/app/craig-thomas/Chip8Python?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=craigthomas/Chip8Python&amp;utm_campaign=Badge_Grade)
+[![Dependencies](https://img.shields.io/librariesio/github/craigthomas/Chip8Python?style=flat-square)](https://libraries.io/github/craigthomas/Chip8Python)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 
 ## Table of Contents
