@@ -9,6 +9,7 @@ A simple Chip 8 emulator - see the README file for more information.
 import mock
 import pygame
 import unittest
+import collections
 
 from mock import patch, call
 
@@ -587,6 +588,13 @@ class TestChip8CPU(unittest.TestCase):
             self.cpu.execute_instruction(operand=0x8008)
         self.assertEqual("Unknown op-code: 8008", context.exception.message)
 
+    def test_execute_instruction_on_operand_in_memory(self):
+        self.cpu.registers['pc'] = 0x200
+        self.cpu.memory[0x200] = 0x61
+        result = self.cpu.execute_instruction()
+        self.assertEqual(0x6100, result)
+        self.assertEqual(0x202, self.cpu.registers['pc'])
+
     def test_execute_logical_instruction_raises_exception_on_unknown_op_codes(self):
         for x in xrange(8, 14):
             self.cpu.operand = x
@@ -724,8 +732,42 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.load_index_with_extended_reg_sprite()
         self.assertEqual(100, self.cpu.registers['index'])
 
+    def test_str_function(self):
+        self.cpu.registers['v'][0] = 0
+        self.cpu.registers['v'][1] = 1
+        self.cpu.registers['v'][2] = 2
+        self.cpu.registers['v'][3] = 3
+        self.cpu.registers['v'][4] = 4
+        self.cpu.registers['v'][5] = 5
+        self.cpu.registers['v'][6] = 6
+        self.cpu.registers['v'][7] = 7
+        self.cpu.registers['v'][8] = 8
+        self.cpu.registers['v'][9] = 9
+        self.cpu.registers['v'][10] = 10
+        self.cpu.registers['v'][11] = 11
+        self.cpu.registers['v'][12] = 12
+        self.cpu.registers['v'][13] = 13
+        self.cpu.registers['v'][14] = 14
+        self.cpu.registers['v'][15] = 15
+        self.cpu.registers['pc'] = 0xBEEF
+        self.cpu.operand = 0xBA
+        self.cpu.registers['index'] = 0xDEAD
+        result = str(self.cpu)
+        self.assertEqual("PC: BEED  OP:   BA\nV0:  0\nV1:  1\nV2:  2\nV3:  3\nV4:  4\nV5:  5\nV6:  6\nV7:  7\nV8:  8\nV9:  9\nVA:  A\nVB:  B\nVC:  C\nVD:  D\nVE:  E\nVF:  F\nI: DEAD\n", result)
+
+    def test_wait_for_keypress(self):
+        EventMock = collections.namedtuple('EventMock', 'type')
+        event_mock = EventMock(type=pygame.KEYDOWN)
+        self.cpu.operand = 0x0
+        with mock.patch("pygame.event.wait", return_value=event_mock):
+            result_table = [False] * 512
+            result_table[pygame.K_4] = True
+            with mock.patch("pygame.key.get_pressed", return_value=result_table):
+                self.cpu.wait_for_keypress()
+                self.assertEqual(0x1, self.cpu.registers['v'][0])
 
 # M A I N #####################################################################
+
 
 if __name__ == '__main__':
     unittest.main()
