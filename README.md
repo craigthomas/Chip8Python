@@ -22,7 +22,8 @@
 5. [Customization](#customization)
     1. [Keys](#keys)
     2. [Debug Keys](#debug-keys)
-6. [Further Documentation](#further-documentation)
+6. [ROM Compatibility](#rom-compatibility)
+7. [Further Documentation](#further-documentation)
 
 ## What is it?
 
@@ -37,10 +38,15 @@ Super Chip 8 instruction set. Note that no additional configuration is
 needed to run a Super Chip 8 ROM - simply run the ROM the same way you
 would run a normal Chip 8 ROM.
 
+There are two other versions of the emulator written in different languages:
+
+* [Chip8Java](https://github.com/craigthomas/Chip8Java)
+* [Chip8C](https://github.com/craigthomas/Chip8C)
+
 
 ## License
 
-Please see the file called LICENSE.
+This project makes use of an MIT style license. Please see the file called LICENSE.
 
 
 ## Installing
@@ -243,6 +249,15 @@ keys that impact the execution of the emulator.
 | Keyboard Key | Effect |
 | :----------: | ------ |
 | `ESC`        | Quits the emulator             |
+
+
+## ROM Compatibility
+
+Here are the list of public domain ROMs and their current status with the emulator.
+
+| ROM Name          | Works Correctly    | Notes |
+| :---------------: | :----------------: | :---: |
+| MAZE              | :heavy_check_mark: |       |
 
 
 ## Further Documentation
