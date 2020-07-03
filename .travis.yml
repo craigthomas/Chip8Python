@@ -1,7 +1,7 @@
 language: python
 sudo: false
 python:
-  - 2.7
+  - 3.6
 env:
   - DISPLAY=:99.0
 addons:
@@ -31,6 +31,6 @@ services:
 virtalenv:
   system_site_packages: true
 script: 
-  - nosetests -v --with-coverage --cover-package=chip8
+  - coverage run -m nose
 after_success:
   - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"

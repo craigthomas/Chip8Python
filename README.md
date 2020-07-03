@@ -27,7 +27,7 @@
 
 ## What is it?
 
-This project is a Chip 8 emulator written in Python 2.7. The original purpose
+This project is a Chip 8 emulator written in Python 3.6+. The original purpose
 of the project was to create a simple learning emulator that was well
 documented and coded in terms that were easy to understand. It was also an
 exercise to learn more about Python. The result is a simple command-line
@@ -54,7 +54,7 @@ This project makes use of an MIT style license. Please see the file called LICEN
 Copy the source files to a directory of your choice. In addition to
 the source, you will need the following required software packages:
 
-* [Python 2.7](http://www.python.org)
+* [Python 3.6.8 or better](http://www.python.org)
 * [pygame](http://www.pygame.org)
 
 I strongly recommend creating a virtual environment using the 
@@ -132,8 +132,9 @@ from the command-line:
 
 ### Windows Installation
 
-1. Download and install [Python 2.7.15 for Windows](https://www.python.org/downloads/release/python-2715/). 
-Make sure that `pip` and `Add python.exe to Path` options are checked when performing the installation.
+1. Download and install [Python 3.6.8 for Windows](https://www.python.org/downloads/release/python-368/). 
+Make sure that `pip` and `Add python.exe to Path` options are checked when performing the installation. Later
+versions of Ptyhon 3 are also likely to work correctly with the emulator.
 
 2. (*Optional*) Install virtual environment support for Python. Run the following commands from a command prompt:
 
@@ -174,7 +175,7 @@ The command-line interface requires a single argument, which is the full
 path to a Chip 8 ROM. Run the following command in the directory where you 
 cloned or downloaded the source files:
 
-    python chip8/yac8e.py /path/to/rom/filename
+    python yac8e.py /path/to/rom/filename
 
 This will start the emulator with the specified ROM. Note that if you created 
 a virtual environment as detailed above, you will need to `workon` that 
@@ -184,20 +185,20 @@ environment before starting the emulator:
 
 ### Screen Scale
 
-The `-s` switch will scale the size of the window (the original size at 1x
+The `--scale` switch will scale the size of the window (the original size at 1x
 scale is 64 x 32):
 
-    python chip8/yac8e.py /path/to/rom/filename -s 10
+    python yac8e.py /path/to/rom/filename --scale 10
 
 The command above will scale the window so that it is 10 times the normal
 size.
 
 ### Execution Delay
 
-You may also wish to experiment with the `-d` switch, which instructs
+You may also wish to experiment with the `--delay` switch, which instructs
 the emulator to add a delay to every operation that is executed. For example,
 
-    python chip8/yac8e.py /path/to/rom/filename -d 10
+    python yac8e.py /path/to/rom/filename --delay 10
 
 The command above will add a 10 ms delay to every opcode that is executed.
 This is useful for very fast computers (note that it is difficult to find
@@ -255,9 +256,11 @@ keys that impact the execution of the emulator.
 
 Here are the list of public domain ROMs and their current status with the emulator.
 
-| ROM Name          | Works Correctly    | Notes |
-| :---------------: | :----------------: | :---: |
-| MAZE              | :heavy_check_mark: |       |
+| ROM Name  | Works Correctly    | Notes                                                                               |
+| :-------: | :----------------: | :---------------------------------------------------------------------------------: |
+| MAZE      | :heavy_check_mark: |                                                                                     |
+| MISSILE   | :heavy_check_mark: | `u` fires                                                                           |
+| PONG      | :heavy_check_mark: | `4` left player up, `7` left player down, `v` right player up, `b` right player down|
 
 
 ## Further Documentation
