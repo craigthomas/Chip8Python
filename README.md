@@ -257,7 +257,7 @@ keys that impact the execution of the emulator.
 Here are the list of public domain ROMs and their current status with the emulator.
 
 | ROM Name  | Works Correctly    | Notes                                                                               |
-| :-------: | :----------------: | :---------------------------------------------------------------------------------: |
+| :-------- | :----------------: | :---------------------------------------------------------------------------------- |
 | MAZE      | :heavy_check_mark: |                                                                                     |
 | MISSILE   | :heavy_check_mark: | `u` fires                                                                           |
 | PONG      | :heavy_check_mark: | `4` left player up, `7` left player down, `v` right player up, `b` right player down|
