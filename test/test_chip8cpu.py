@@ -580,13 +580,13 @@ class TestChip8CPU(unittest.TestCase):
     def test_execute_instruction_raises_exception_on_unknown_op_code(self):
         with self.assertRaises(UnknownOpCodeException) as context:
             self.cpu.execute_instruction(operand=0x8008)
-        self.assertEqual("Unknown op-code: 8008", context.exception.message)
+        self.assertEqual("Unknown op-code: 8008", str(context.exception))
 
     def test_execute_instruction_raises_exception_on_unknown_op_code_from_cpu(self):
         with self.assertRaises(UnknownOpCodeException) as context:
             self.cpu.operand = 0x8008
             self.cpu.execute_instruction(operand=0x8008)
-        self.assertEqual("Unknown op-code: 8008", context.exception.message)
+        self.assertEqual("Unknown op-code: 8008", str(context.exception))
 
     def test_execute_instruction_on_operand_in_memory(self):
         self.cpu.registers['pc'] = 0x200
@@ -596,7 +596,7 @@ class TestChip8CPU(unittest.TestCase):
         self.assertEqual(0x202, self.cpu.registers['pc'])
 
     def test_execute_logical_instruction_raises_exception_on_unknown_op_codes(self):
-        for x in xrange(8, 14):
+        for x in range(8, 14):
             self.cpu.operand = x
             with self.assertRaises(UnknownOpCodeException):
                 self.cpu.execute_logical_instruction()
@@ -610,7 +610,7 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.operand = 0x0
         with self.assertRaises(UnknownOpCodeException) as context:
             self.cpu.misc_routines()
-        self.assertEqual("Unknown op-code: 0", context.exception.message)
+        self.assertEqual("Unknown op-code: 0", str(context.exception))
 
     def test_scroll_down_called(self):
         self.cpu.operand = 0x00C4
@@ -753,7 +753,9 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.operand = 0xBA
         self.cpu.registers['index'] = 0xDEAD
         result = str(self.cpu)
-        self.assertEqual("PC: BEED  OP:   BA\nV0:  0\nV1:  1\nV2:  2\nV3:  3\nV4:  4\nV5:  5\nV6:  6\nV7:  7\nV8:  8\nV9:  9\nVA:  A\nVB:  B\nVC:  C\nVD:  D\nVE:  E\nVF:  F\nI: DEAD\n", result)
+        self.assertEqual(
+            "PC: BEED  OP:   BA\nV0:  0\nV1:  1\nV2:  2\nV3:  3\nV4:  4\nV5:  5\nV6:  6"
+            "\nV7:  7\nV8:  8\nV9:  9\nVA:  A\nVB:  B\nVC:  C\nVD:  D\nVE:  E\nVF:  F\nI: DEAD\n", result)
 
     def test_wait_for_keypress(self):
         EventMock = collections.namedtuple('EventMock', 'type')

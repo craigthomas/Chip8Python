@@ -11,7 +11,7 @@ import pygame
 from pygame import key
 from random import randint
 
-from config import (
+from chip8.config import (
     MAX_MEMORY, STACK_POINTER_START, KEY_MAPPINGS, PROGRAM_COUNTER_START
 )
 
@@ -667,14 +667,14 @@ class Chip8CPU(object):
         :param y_pos: the Y position of the sprite
         :param num_bytes: the number of bytes to draw
         """
-        for y_index in xrange(num_bytes):
+        for y_index in range(num_bytes):
 
             color_byte = bin(self.memory[self.registers['index'] + y_index])
             color_byte = color_byte[2:].zfill(8)
             y_coord = y_pos + y_index
             y_coord = y_coord % self.screen.get_height()
 
-            for x_index in xrange(8):
+            for x_index in range(8):
 
                 x_coord = x_pos + x_index
                 x_coord = x_coord % self.screen.get_width()
@@ -704,9 +704,9 @@ class Chip8CPU(object):
         :param y_pos: the Y position of the sprite
         :param num_bytes: the number of bytes to draw
         """
-        for y_index in xrange(num_bytes):
+        for y_index in range(num_bytes):
 
-            for x_byte in xrange(2):
+            for x_byte in range(2):
 
                 color_byte = bin(self.memory[self.registers['index'] + (y_index * 2) + x_byte])
                 color_byte = color_byte[2:].zfill(8)

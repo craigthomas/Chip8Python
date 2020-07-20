@@ -180,14 +180,14 @@ class Chip8Screen(object):
         
         :param num_lines: the number of lines to scroll down 
         """
-        for y_pos in xrange(self.height - num_lines, -1, -1):
-            for x_pos in xrange(self.width):
+        for y_pos in range(self.height - num_lines, -1, -1):
+            for x_pos in range(self.width):
                 pixel_color = self.get_pixel(x_pos, y_pos)
                 self.draw_pixel(x_pos, y_pos + num_lines, pixel_color)
 
         # Blank out the lines above the ones we scrolled
-        for y_pos in xrange(num_lines):
-            for x_pos in xrange(self.width):
+        for y_pos in range(num_lines):
+            for x_pos in range(self.width):
                 self.draw_pixel(x_pos, y_pos, 0)
 
         self.update()
@@ -196,14 +196,14 @@ class Chip8Screen(object):
         """
         Scroll the screen left 4 pixels.
         """
-        for y_pos in xrange(self.height):
-            for x_pos in xrange(4, self.width):
+        for y_pos in range(self.height):
+            for x_pos in range(4, self.width):
                 pixel_color = self.get_pixel(x_pos, y_pos)
                 self.draw_pixel(x_pos - 4, y_pos, pixel_color)
 
         # Blank out the lines to the right of the ones we just scrolled
-        for y_pos in xrange(self.height):
-            for x_pos in xrange(self.width - 4, self.width):
+        for y_pos in range(self.height):
+            for x_pos in range(self.width - 4, self.width):
                 self.draw_pixel(x_pos, y_pos, 0)
 
         self.update()
@@ -212,14 +212,14 @@ class Chip8Screen(object):
         """
         Scroll the screen right 4 pixels.
         """
-        for y_pos in xrange(self.height):
-            for x_pos in xrange(self.width - 4, -1, -1):
+        for y_pos in range(self.height):
+            for x_pos in range(self.width - 4, -1, -1):
                 pixel_color = self.get_pixel(x_pos, y_pos)
                 self.draw_pixel(x_pos + 4, y_pos, pixel_color)
 
         # Blank out the lines to the left of the ones we just scrolled
-        for y_pos in xrange(self.height):
-            for x_pos in xrange(4):
+        for y_pos in range(self.height):
+            for x_pos in range(4):
                 self.draw_pixel(x_pos, y_pos, 0)
 
         self.update()
