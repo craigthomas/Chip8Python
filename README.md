@@ -66,23 +66,23 @@ and run the emulator in, without touching your master Python environment.
 
 ### Ubuntu Installation
 
-The installation under Ubuntu requires several different steps:
+The installation under Ubuntu 20.04 requires several different steps:
 
 1. Install SDL libraries. The SDL (Simple DirectMedia Layer) libraries are used by PyGame to draw 
 images on the screen. Several other dependencies are needed by SDL in order to install PyGame. 
 To install the required SDL libraries (plus dependencies) from the command-line:
 
     ```
-    sudo apt-get install libfreetype6-dev libsdl-dev libsdl-image1.2-dev \ 
-    libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl-sound1.2-dev \
-    libportmidi-dev python-dev
+    sudo apt install python3 python3-dev libsdl-dev libfreetype6-dev \
+    libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsdl-sound1.2-dev \
+    libportmidi-dev
     ```
 
 2. Install PIP. The `pip` package manager is used for managing Python packages. To install `pip` 
 from the command-line:
 
     ```
-    sudo apt-get install python-pip
+    sudo apt install python3-pip
     ```
 
 3. (*Optional*) Install virtual environment support for Python:
@@ -90,8 +90,8 @@ from the command-line:
     1. Install virtual environment support:
 
     ```
-    pip install virtualenv
-    pip install virtualenvwrapper
+    pip3 install virtualenv
+    pip3 install virtualenvwrapper
     ```
 
     2. First you must update your `.bashrc` file in the your home directory and add a few lines 
@@ -99,8 +99,10 @@ from the command-line:
 
     ```
     cat >> ~/.bashrc << EOF
+    export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
     export WORKON_HOME=$HOME/.virtualenvs
-    source /usr/local/bin/virtualenvwrapper.sh
+    export PATH=$PATH:$HOME/.local/bin
+    source $HOME/.local/bin/virtualenvwrapper.sh
     EOF
     ```
 
@@ -119,7 +121,7 @@ from the command-line:
 5. Clone (or download) the Chip 8 emulator project:
 
     ```
-    sudo apt-get install git
+    sudo apt install git
     git clone https://github.com/craigthomas/Chip8Python.git
     ```
 
@@ -134,7 +136,7 @@ from the command-line:
 
 1. Download and install [Python 3.6.8 for Windows](https://www.python.org/downloads/release/python-368/). 
 Make sure that `pip` and `Add python.exe to Path` options are checked when performing the installation. Later
-versions of Ptyhon 3 are also likely to work correctly with the emulator.
+versions of Python 3 are also likely to work correctly with the emulator.
 
 2. (*Optional*) Install virtual environment support for Python. Run the following commands from a command prompt:
 
@@ -171,17 +173,18 @@ in the directory where you cloned or downloaded the source files:
 
 ### Running a ROM
 
+Note that if you created a virtual environment as detailed above, 
+you will need to `workon` that environment before starting the emulator:
+
+    workon chip8
+    
 The command-line interface requires a single argument, which is the full
 path to a Chip 8 ROM. Run the following command in the directory where you 
 cloned or downloaded the source files:
 
     python yac8e.py /path/to/rom/filename
 
-This will start the emulator with the specified ROM. Note that if you created 
-a virtual environment as detailed above, you will need to `workon` that 
-environment before starting the emulator:
-
-    workon chip8
+This will start the emulator with the specified ROM. 
 
 ### Screen Scale
 
@@ -254,13 +257,17 @@ keys that impact the execution of the emulator.
 
 ## ROM Compatibility
 
-Here are the list of public domain ROMs and their current status with the emulator.
+Here are the list of public domain ROMs and their current status with the emulator, along 
+with keypresses based on the default keymap:
 
 | ROM Name  | Works Correctly    | Notes                                                                               |
 | :-------- | :----------------: | :---------------------------------------------------------------------------------- |
 | MAZE      | :heavy_check_mark: |                                                                                     |
-| MISSILE   | :heavy_check_mark: | `u` fires                                                                           |
-| PONG      | :heavy_check_mark: | `4` left player up, `7` left player down, `v` right player up, `b` right player down|
+| MISSILE   | :heavy_check_mark: | `U` fires                                                                           |
+| PONG      | :heavy_check_mark: | `4` left player up, `7` left player down, `V` right player up, `B` right player down|
+| TANK      | :heavy_check_mark: | `R` fires, `T` moves right, `7` moves left, `5` moves down, `U` moves up            |
+| TETRIS    | :heavy_check_mark: | `R` moves left, `T` moves right, `Y` moves down, `7` rotates                        |
+| UFO       | :heavy_check_mark: | `R` fires up, `T` fires right, `7` fires left                                       |
 
 
 ## Further Documentation
