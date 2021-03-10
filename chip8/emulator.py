@@ -31,6 +31,7 @@ def main_loop(args):
     cpu = Chip8CPU(screen)
     cpu.load_rom(FONT_FILE, 0)
     cpu.load_rom(args.rom)
+    pygame.init()
     pygame.time.set_timer(TIMER, DELAY_INTERVAL)
 
     while cpu.running:
