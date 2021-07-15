@@ -15,7 +15,7 @@ jobs:
         python-version: 3.6.8
     - name: Generate Report
       run: |
-        pip install -r requirements
+        pip install -r requirements.txt
         coverage run -m unittest
     - name: Codecov
       uses: codecov/codecov-action@v1.5.2
