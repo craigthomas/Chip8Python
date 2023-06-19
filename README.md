@@ -1,6 +1,6 @@
 # Yet Another (Super) Chip 8 Emulator
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/craigthomas/Chip8Python/Build%20Test%20Coverage?style=flat-square)](https://github.com/craigthomas/Chip8Python/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/craigthomas/Chip8Python/python-app.yml?style=flat-square&branch=main)](https://github.com/craigthomas/Chip8Python/actions)
 [![Codecov](https://img.shields.io/codecov/c/gh/craigthomas/Chip8Python?style=flat-square)](https://codecov.io/gh/craigthomas/Chip8Python) 
 [![Dependencies](https://img.shields.io/librariesio/github/craigthomas/Chip8Python?style=flat-square)](https://libraries.io/github/craigthomas/Chip8Python)
 [![Releases](https://img.shields.io/github/release/craigthomas/Chip8Python?style=flat-square)](https://github.com/craigthomas/Chip8Python/releases)
