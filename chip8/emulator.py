@@ -1,5 +1,5 @@
 """
-Copyright (C) 2012-2019 Craig Thomas
+Copyright (C) 2024 Craig Thomas
 This project uses an MIT style license - see LICENSE for details.
 
 A simple Chip 8 emulator - see the README file for more information.
@@ -8,14 +8,9 @@ A simple Chip 8 emulator - see the README file for more information.
 
 import pygame
 
-from chip8.config import FONT_FILE, DELAY_INTERVAL
+from chip8.config import FONT_FILE
 from chip8.cpu import Chip8CPU
 from chip8.screen import Chip8Screen
-
-# C O N S T A N T S ###########################################################
-
-# A simple timer event used for the delay and sound timers
-TIMER = pygame.USEREVENT + 1
 
 # F U N C T I O N S  ##########################################################
 
@@ -26,21 +21,37 @@ def main_loop(args):
 
     :param args: the parsed command-line arguments
     """
+    delay_timer_event = 24
+
     screen = Chip8Screen(scale_factor=args.scale)
     screen.init_display()
-    cpu = Chip8CPU(screen)
+    cpu = Chip8CPU(
+        screen,
+        shift_quirks=args.shift_quirks,
+        index_quirks=args.index_quirks,
+        jump_quirks=args.jump_quirks,
+        clip_quirks=args.clip_quirks,
+        logic_quirks=args.logic_quirks,
+        mem_size=args.mem_size,
+    )
     cpu.load_rom(FONT_FILE, 0)
     cpu.load_rom(args.rom)
+
     pygame.init()
-    pygame.time.set_timer(TIMER, DELAY_INTERVAL)
+    pygame.time.set_timer(delay_timer_event, 17)
 
     while cpu.running:
         pygame.time.wait(args.op_delay)
-        cpu.execute_instruction()
 
-        # Check for events
+        if not cpu.awaiting_keypress:
+            cpu.execute_instruction()
+
+        if args.trace:
+            print(cpu)
+
+        # # Check for events of specific types
         for event in pygame.event.get():
-            if event.type == TIMER:
+            if event.type == delay_timer_event:
                 cpu.decrement_timers()
             if event.type == pygame.QUIT:
                 cpu.running = False
@@ -48,5 +59,7 @@ def main_loop(args):
                 keys_pressed = pygame.key.get_pressed()
                 if keys_pressed[pygame.K_ESCAPE]:
                     cpu.running = False
+                if cpu.awaiting_keypress:
+                    cpu.decode_keypress_and_continue(keys_pressed)
 
 # E N D   O F   F I L E #######################################################

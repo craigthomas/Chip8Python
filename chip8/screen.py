@@ -11,24 +11,8 @@ from pygame import display, HWSURFACE, DOUBLEBUF, Color, draw
 # C O N S T A N T S ###########################################################
 
 # Various screen modes
-SCREEN_MODE_NORMAL = 'normal'
-SCREEN_MODE_EXTENDED = 'extended'
-
-# The height of the screen in pixels. Note this may be augmented by the
-# scale_factor set by the initializer.
-SCREEN_HEIGHT = {
-    SCREEN_MODE_NORMAL: 32,
-    SCREEN_MODE_EXTENDED: 64
-}
-DEFAULT_HEIGHT = SCREEN_HEIGHT[SCREEN_MODE_NORMAL]
-
-# The width of the screen in pixels. Note this may be augmented by the
-# scale_factor set by the initializer.
-SCREEN_WIDTH = {
-    SCREEN_MODE_NORMAL: 64,
-    SCREEN_MODE_EXTENDED: 128
-}
-DEFAULT_WIDTH = SCREEN_WIDTH[SCREEN_MODE_NORMAL]
+SCREEN_MODE_NORMAL = 0
+SCREEN_MODE_EXTENDED = 1
 
 # The depth of the screen is the number of bits used to represent the color
 # of a pixel.
@@ -44,26 +28,25 @@ PIXEL_COLORS = {
 # C L A S S E S ###############################################################
 
 
-class Chip8Screen(object):
+class Chip8Screen:
     """
     A class to emulate a Chip 8 Screen. The original Chip 8 screen was 64 x 32
     with 2 colors. In this emulator, this translates to color 0 (off) and color
     1 (on).
     """
-    def __init__(self, scale_factor, height=DEFAULT_HEIGHT, width=DEFAULT_WIDTH):
+    def __init__(self, scale_factor):
         """
         Initializes the main screen. The scale factor is used to modify
         the size of the main screen, since the original resolution of the
         Chip 8 was 64 x 32, which is quite small.
 
         :param scale_factor: the scaling factor to apply to the screen
-        :param height: the height of the screen
-        :param width: the width of the screen
         """
-        self.height = height
-        self.width = width
+        self.height = 64
+        self.width = 128
         self.scale_factor = scale_factor
         self.surface = None
+        self.mode = SCREEN_MODE_NORMAL
 
     def init_display(self):
         """
@@ -81,7 +64,7 @@ class Chip8Screen(object):
         self.clear_screen()
         self.update()
 
-    def draw_pixel(self, x_pos, y_pos, pixel_color):
+    def draw_pixel(self, x_pos, y_pos, turn_on):
         """
         Turn a pixel on or off at the specified location on the screen. Note
         that the pixel will not automatically be drawn on the screen, you
@@ -91,13 +74,15 @@ class Chip8Screen(object):
 
         :param x_pos: the x coordinate to place the pixel
         :param y_pos: the y coordinate to place the pixel
-        :param pixel_color: the color of the pixel to draw
+        :param turn_on: whether to turn the pixel on or off
         """
-        x_base = x_pos * self.scale_factor
-        y_base = y_pos * self.scale_factor
+        mode_scale = 1 if self.mode == SCREEN_MODE_EXTENDED else 2
+        pixel_color = 1 if turn_on else 0
+        x_base = (x_pos * mode_scale) * self.scale_factor
+        y_base = (y_pos * mode_scale) * self.scale_factor
         draw.rect(self.surface,
                   PIXEL_COLORS[pixel_color],
-                  (x_base, y_base, self.scale_factor, self.scale_factor))
+                  (x_base, y_base, mode_scale * self.scale_factor, mode_scale * self.scale_factor))
 
     def get_pixel(self, x_pos, y_pos):
         """
@@ -106,16 +91,29 @@ class Chip8Screen(object):
 
         :param x_pos: the x coordinate to check
         :param y_pos: the y coordinate to check
-        :return: the color of the specified pixel (0 or 1)
+        :return: true if the pixel is currently turned on
         """
-        x_scale = x_pos * self.scale_factor
-        y_scale = y_pos * self.scale_factor
+        mode_scale = 1 if self.mode == SCREEN_MODE_EXTENDED else 2
+        x_scale = (x_pos * mode_scale) * self.scale_factor
+        y_scale = (y_pos * mode_scale) * self.scale_factor
         pixel_color = self.surface.get_at((x_scale, y_scale))
-        if pixel_color == PIXEL_COLORS[0]:
-            color = 0
-        else:
-            color = 1
-        return color
+        return pixel_color == PIXEL_COLORS[1]
+
+    def get_width(self):
+        """
+        Returns the width of the screen in pixels.
+
+        :return: the width of the screen
+        """
+        return 128 if self.mode == SCREEN_MODE_EXTENDED else 64
+
+    def get_height(self):
+        """
+        Returns the height of the screen in pixels.
+
+        :return: the height of the screen
+        """
+        return 64 if self.mode == SCREEN_MODE_EXTENDED else 32
 
     def clear_screen(self):
         """
@@ -133,95 +131,49 @@ class Chip8Screen(object):
         """
         display.flip()
 
-    def get_width(self):
-        """
-        Returns the current value of the screen width.
-
-        :return: the width of the screen
-        """
-        return self.width
-
-    def get_height(self):
-        """
-        Returns the current value of the screen height.
-
-        :return: the height of the screen
-        """
-        return self.height
-
-    @staticmethod
-    def destroy():
-        """
-        Destroys the current screen object.
-        """
-        display.quit()
-
     def set_extended(self):
         """
         Sets the screen mode to extended.
         """
-        self.destroy()
-        self.height = SCREEN_HEIGHT[SCREEN_MODE_EXTENDED]
-        self.width = SCREEN_WIDTH[SCREEN_MODE_EXTENDED]
-        self.init_display()
+        self.mode = SCREEN_MODE_EXTENDED
 
     def set_normal(self):
         """
         Sets the screen mode to normal.
         """
-        self.destroy()
-        self.height = SCREEN_HEIGHT[SCREEN_MODE_NORMAL]
-        self.width = SCREEN_WIDTH[SCREEN_MODE_NORMAL]
-        self.init_display()
+        self.mode = SCREEN_MODE_NORMAL
 
     def scroll_down(self, num_lines):
         """
         Scroll the screen down by num_lines.
-        
-        :param num_lines: the number of lines to scroll down 
+
+        :param num_lines: the number of lines to scroll down
         """
-        for y_pos in range(self.height - num_lines, -1, -1):
-            for x_pos in range(self.width):
-                pixel_color = self.get_pixel(x_pos, y_pos)
-                self.draw_pixel(x_pos, y_pos + num_lines, pixel_color)
-
-        # Blank out the lines above the ones we scrolled
-        for y_pos in range(num_lines):
-            for x_pos in range(self.width):
-                self.draw_pixel(x_pos, y_pos, 0)
-
+        mode_scale = 1 if self.mode == SCREEN_MODE_EXTENDED else 2
+        actual_lines = num_lines * mode_scale * self.scale_factor
+        self.surface.scroll(0, actual_lines)
+        self.surface.fill(PIXEL_COLORS[0], (0, 0, self.width * mode_scale * self.scale_factor, actual_lines))
         self.update()
 
     def scroll_left(self):
         """
         Scroll the screen left 4 pixels.
         """
-        for y_pos in range(self.height):
-            for x_pos in range(4, self.width):
-                pixel_color = self.get_pixel(x_pos, y_pos)
-                self.draw_pixel(x_pos - 4, y_pos, pixel_color)
-
-        # Blank out the lines to the right of the ones we just scrolled
-        for y_pos in range(self.height):
-            for x_pos in range(self.width - 4, self.width):
-                self.draw_pixel(x_pos, y_pos, 0)
-
+        mode_scale = 1 if self.mode == SCREEN_MODE_EXTENDED else 2
+        actual_lines = 4 * mode_scale * self.scale_factor
+        left = (self.width * mode_scale * self.scale_factor) - actual_lines
+        self.surface.scroll(-actual_lines, 0)
+        self.surface.fill(PIXEL_COLORS[0], (left, 0, actual_lines, self.height * mode_scale * self.scale_factor))
         self.update()
 
     def scroll_right(self):
         """
         Scroll the screen right 4 pixels.
         """
-        for y_pos in range(self.height):
-            for x_pos in range(self.width - 4, -1, -1):
-                pixel_color = self.get_pixel(x_pos, y_pos)
-                self.draw_pixel(x_pos + 4, y_pos, pixel_color)
-
-        # Blank out the lines to the left of the ones we just scrolled
-        for y_pos in range(self.height):
-            for x_pos in range(4):
-                self.draw_pixel(x_pos, y_pos, 0)
-
+        mode_scale = 1 if self.mode == SCREEN_MODE_EXTENDED else 2
+        actual_lines = 4 * mode_scale * self.scale_factor
+        self.surface.scroll(actual_lines, 0)
+        self.surface.fill(PIXEL_COLORS[0], (0, 0, actual_lines, self.height * mode_scale * self.scale_factor))
         self.update()
 
 # E N D   O F   F I L E ########################################################

@@ -1,5 +1,5 @@
 """
-Copyright (C) 2012-2018 Craig Thomas
+Copyright (C) 2024 Craig Thomas
 This project uses an MIT style license - see LICENSE for details.
 
 A simple Chip 8 emulator - see the README file for more information.
@@ -37,30 +37,30 @@ class TestChip8CPU(unittest.TestCase):
 
     def test_return_from_subroutine(self):
         for address in range(0x200, 0xFFFF, 0x10):
-            self.cpu.memory[self.cpu.registers['sp']] = address & 0x00FF
-            self.cpu.memory[self.cpu.registers['sp'] + 1] = \
+            self.cpu.memory[self.cpu.sp] = address & 0x00FF
+            self.cpu.memory[self.cpu.sp + 1] = \
                 (address & 0xFF00) >> 8
-            self.cpu.registers['sp'] += 2
-            self.cpu.registers['pc'] = 0
+            self.cpu.sp += 2
+            self.cpu.pc = 0
             self.cpu.return_from_subroutine()
-            self.assertEqual(self.cpu.registers['pc'], address)
+            self.assertEqual(self.cpu.pc, address)
 
     def test_jump_to_address(self):
         for address in range(0, 0xFFFF, 0x10):
             self.cpu.operand = address
-            self.cpu.registers['pc'] = 0
-            self.assertEqual(self.cpu.registers['pc'], 0)
+            self.cpu.pc = 0
+            self.assertEqual(self.cpu.pc, 0)
             self.cpu.jump_to_address()
-            self.assertEqual(self.cpu.registers['pc'], (address & 0x0FFF))
+            self.assertEqual(self.cpu.pc, (address & 0x0FFF))
 
     def test_jump_to_subroutine(self):
         for address in range(0x200, 0xFFFF, 0x10):
             self.cpu.operand = address
-            self.cpu.registers['sp'] = 0
-            self.cpu.registers['pc'] = 0x100
+            self.cpu.sp = 0
+            self.cpu.pc = 0x100
             self.cpu.jump_to_subroutine()
-            self.assertEqual(self.cpu.registers['pc'], (address & 0x0FFF))
-            self.assertEqual(self.cpu.registers['sp'], 2)
+            self.assertEqual(self.cpu.pc, (address & 0x0FFF))
+            self.assertEqual(self.cpu.sp, 2)
             self.assertEqual(self.cpu.memory[0], 0)
             self.assertEqual(self.cpu.memory[1], 0x1)
 
@@ -70,14 +70,14 @@ class TestChip8CPU(unittest.TestCase):
                 for reg_value in range(0, 0xFF, 0x10):
                     self.cpu.operand = register << 8
                     self.cpu.operand += value
-                    self.cpu.registers['v'][register] = reg_value
-                    self.cpu.registers['pc'] = 0
-                    self.assertEqual(self.cpu.registers['pc'], 0)
+                    self.cpu.v[register] = reg_value
+                    self.cpu.pc = 0
+                    self.assertEqual(self.cpu.pc, 0)
                     self.cpu.skip_if_reg_equal_val()
                     if value == reg_value:
-                        self.assertEqual(self.cpu.registers['pc'], 2)
+                        self.assertEqual(self.cpu.pc, 2)
                     else:
-                        self.assertEqual(self.cpu.registers['pc'], 0)
+                        self.assertEqual(self.cpu.pc, 0)
 
     def test_skip_if_reg_not_equal_val(self):
         for register in range(0x10):
@@ -85,17 +85,17 @@ class TestChip8CPU(unittest.TestCase):
                 for reg_value in range(0, 0xFF, 0x10):
                     self.cpu.operand = register << 8
                     self.cpu.operand += value
-                    self.cpu.registers['v'][register] = reg_value
-                    self.cpu.registers['pc'] = 0
+                    self.cpu.v[register] = reg_value
+                    self.cpu.pc = 0
                     self.cpu.skip_if_reg_not_equal_val()
                     if value != reg_value:
-                        self.assertEqual(self.cpu.registers['pc'], 2)
+                        self.assertEqual(self.cpu.pc, 2)
                     else:
-                        self.assertEqual(self.cpu.registers['pc'], 0)
+                        self.assertEqual(self.cpu.pc, 0)
 
     def test_skip_if_reg_equal_reg(self):
         for reg_num in range(0x10):
-            self.cpu.registers['v'][reg_num] = reg_num
+            self.cpu.v[reg_num] = reg_num
 
         for reg_1 in range(0x10):
             for reg_2 in range(0x10):
@@ -104,21 +104,21 @@ class TestChip8CPU(unittest.TestCase):
                 self.cpu.operand += reg_2
                 self.cpu.operand <<= 4
 
-                self.cpu.registers['pc'] = 0
-                self.assertEqual(self.cpu.registers['pc'], 0)
+                self.cpu.pc = 0
+                self.assertEqual(self.cpu.pc, 0)
                 self.cpu.skip_if_reg_equal_reg()
 
                 # If we are testing the same register as the source and the
                 # destination, then a skip WILL occur
                 if reg_1 == reg_2:
-                    self.assertEqual(self.cpu.registers['pc'], 2)
+                    self.assertEqual(self.cpu.pc, 2)
                 else:
-                    self.assertEqual(self.cpu.registers['pc'], 0)
+                    self.assertEqual(self.cpu.pc, 0)
 
     def test_move_value_to_reg(self):
         val = 0x23
         for reg_num in range(0x10):
-            self.assertEqual(self.cpu.registers['v'][0x0], 0)
+            self.assertEqual(self.cpu.v[0x0], 0)
 
         for reg_num in range(0x10):
             self.cpu.operand = 0x60 + reg_num
@@ -129,42 +129,42 @@ class TestChip8CPU(unittest.TestCase):
 
             for reg_to_check in range(0x10):
                 if reg_to_check != reg_num:
-                    self.assertEqual(self.cpu.registers['v'][reg_to_check], 0)
+                    self.assertEqual(self.cpu.v[reg_to_check], 0)
                 else:
-                    self.assertEqual(self.cpu.registers['v'][reg_to_check], val)
+                    self.assertEqual(self.cpu.v[reg_to_check], val)
 
-            self.cpu.registers['v'][reg_num] = 0
+            self.cpu.v[reg_num] = 0
 
     def test_add_value_to_reg(self):
         for register in range(0x10):
             for reg_value in range(0, 0xFF, 0x10):
                 for value in range(0, 0xFF, 0x10):
-                    self.cpu.registers['v'][register] = reg_value
+                    self.cpu.v[register] = reg_value
                     self.cpu.operand = register << 8
                     self.cpu.operand += value
                     self.assertEqual(
-                        self.cpu.registers['v'][register],
+                        self.cpu.v[register],
                         reg_value)
                     self.cpu.add_value_to_reg()
                     if value + reg_value < 256:
                         self.assertEqual(
-                            self.cpu.registers['v'][register],
+                            self.cpu.v[register],
                             value + reg_value)
                     else:
                         self.assertEqual(
-                            self.cpu.registers['v'][register],
+                            self.cpu.v[register],
                             (value + reg_value - 256))
 
     def test_move_reg_into_reg(self):
         for source in range(0x10):
             for target in range(0x10):
                 if source != target:
-                    self.cpu.registers['v'][target] = 0x32
-                    self.cpu.registers['v'][source] = 0
+                    self.cpu.v[target] = 0x32
+                    self.cpu.v[source] = 0
                     self.cpu.operand = source << 8
                     self.cpu.operand += (target << 4)
                     self.cpu.move_reg_into_reg()
-                    self.assertEqual(self.cpu.registers['v'][source], 0x32)
+                    self.assertEqual(self.cpu.v[source], 0x32)
 
     def test_logical_or(self):
         for source in range(0x10):
@@ -172,22 +172,22 @@ class TestChip8CPU(unittest.TestCase):
                 if source != target:
                     for source_val in range(0, 0xFF, 0x10):
                         for target_val in range(0, 0xFF, 0x10):
-                            self.cpu.registers['v'][source] = source_val
-                            self.cpu.registers['v'][target] = target_val
+                            self.cpu.v[source] = source_val
+                            self.cpu.v[target] = target_val
                             self.cpu.operand = source << 8
                             self.cpu.operand += (target << 4)
                             self.cpu.logical_or()
                             self.assertEqual(
-                                self.cpu.registers['v'][source],
+                                self.cpu.v[source],
                                 source_val | target_val)
                 else:
                     for source_val in range(0, 0xFF, 0x10):
-                        self.cpu.registers['v'][source] = source_val
+                        self.cpu.v[source] = source_val
                         self.cpu.operand = source << 8
                         self.cpu.operand += (target << 4)
                         self.cpu.logical_or()
                         self.assertEqual(
-                            self.cpu.registers['v'][source],
+                            self.cpu.v[source],
                             source_val)
 
     def test_logical_and(self):
@@ -196,22 +196,22 @@ class TestChip8CPU(unittest.TestCase):
                 if source != target:
                     for source_val in range(0, 0xFF, 0x10):
                         for target_val in range(0, 0xFF, 0x10):
-                            self.cpu.registers['v'][source] = source_val
-                            self.cpu.registers['v'][target] = target_val
+                            self.cpu.v[source] = source_val
+                            self.cpu.v[target] = target_val
                             self.cpu.operand = source << 8
                             self.cpu.operand += (target << 4)
                             self.cpu.logical_and()
                             self.assertEqual(
-                                self.cpu.registers['v'][source],
+                                self.cpu.v[source],
                                 source_val & target_val)
                 else:
                     for source_val in range(256):
-                        self.cpu.registers['v'][source] = source_val
+                        self.cpu.v[source] = source_val
                         self.cpu.operand = source << 8
                         self.cpu.operand += (target << 4)
                         self.cpu.logical_and()
                         self.assertEqual(
-                            self.cpu.registers['v'][source],
+                            self.cpu.v[source],
                             source_val)
 
     def test_exclusive_or(self):
@@ -220,13 +220,13 @@ class TestChip8CPU(unittest.TestCase):
                 if source != target:
                     for source_val in range(0, 0xFF, 0x10):
                         for target_val in range(0xF):
-                            self.cpu.registers['v'][source] = source_val
-                            self.cpu.registers['v'][target] = target_val
+                            self.cpu.v[source] = source_val
+                            self.cpu.v[target] = target_val
                             self.cpu.operand = source << 8
                             self.cpu.operand += (target << 4)
                             self.cpu.exclusive_or()
                             self.assertEqual(
-                                self.cpu.registers['v'][source],
+                                self.cpu.v[source],
                                 source_val ^ target_val)
 
     def test_add_to_reg(self):
@@ -235,23 +235,23 @@ class TestChip8CPU(unittest.TestCase):
                 if source != target:
                     for source_val in range(0, 0xFF, 0x10):
                         for target_val in range(0, 0xFF, 0x10):
-                            self.cpu.registers['v'][source] = source_val
-                            self.cpu.registers['v'][target] = target_val
+                            self.cpu.v[source] = source_val
+                            self.cpu.v[target] = target_val
                             self.cpu.operand = source << 8
                             self.cpu.operand += (target << 4)
                             self.cpu.add_reg_to_reg()
                             if source_val + target_val > 255:
                                 self.assertEqual(
-                                    self.cpu.registers['v'][source],
+                                    self.cpu.v[source],
                                     source_val + target_val - 256)
                                 self.assertEqual(
-                                    self.cpu.registers['v'][0xF], 1)
+                                    self.cpu.v[0xF], 1)
                             else:
                                 self.assertEqual(
-                                    self.cpu.registers['v'][source],
+                                    self.cpu.v[source],
                                     source_val + target_val)
                                 self.assertEqual(
-                                    self.cpu.registers['v'][0xF], 0)
+                                    self.cpu.v[0xF], 0)
 
     def test_subtract_reg_from_reg(self):
         for source in range(0xF):
@@ -259,169 +259,204 @@ class TestChip8CPU(unittest.TestCase):
                 if source != target:
                     for source_val in range(0, 0xFF, 0x10):
                         for target_val in range(0xF):
-                            self.cpu.registers['v'][source] = source_val
-                            self.cpu.registers['v'][target] = target_val
+                            self.cpu.v[source] = source_val
+                            self.cpu.v[target] = target_val
                             self.cpu.operand = source << 8
                             self.cpu.operand += (target << 4)
                             self.cpu.subtract_reg_from_reg()
                             if source_val > target_val:
+                                self.assertEqual(self.cpu.v[source], source_val - target_val)
                                 self.assertEqual(
-                                    self.cpu.registers['v'][source],
-                                    source_val - target_val)
-                                self.assertEqual(
-                                    self.cpu.registers['v'][0xF], 1)
+                                    self.cpu.v[0xF], 1)
+                            elif source_val == target_val:
+                                self.assertEqual(self.cpu.v[source], 0)
+                                self.assertEqual(self.cpu.v[0xF], 1)
                             else:
-                                self.assertEqual(
-                                    self.cpu.registers['v'][source],
-                                    256 + source_val - target_val)
-                                self.assertEqual(
-                                    self.cpu.registers['v'][0xF], 0)
+                                self.assertEqual(self.cpu.v[source], 256 + source_val - target_val)
+                                self.assertEqual(self.cpu.v[0xF], 0)
 
-    def test_right_shift_reg(self):
+    def test_right_shift_reg_quirks(self):
+        self.cpu.shift_quirks = True
         for register in range(0xF):
             for value in range(0, 0xFF, 0x10):
-                self.cpu.registers['v'][register] = value
+                self.cpu.v[register] = value
                 self.cpu.operand = register << 8
-                self.cpu.operand = self.cpu.operand + (register << 4)
                 for index in range(1, 8):
                     shifted_val = value >> index
-                    self.cpu.registers['v'][0xF] = 0
-                    bit_zero = self.cpu.registers['v'][register] & 0x1
+                    self.cpu.v[0xF] = 0
+                    bit_zero = self.cpu.v[register] & 0x1
                     self.cpu.right_shift_reg()
-                    self.assertEqual(
-                        self.cpu.registers['v'][register], shifted_val)
-                    self.assertEqual(self.cpu.registers['v'][0xF], bit_zero)
+                    self.assertEqual(self.cpu.v[register], shifted_val)
+                    self.assertEqual(self.cpu.v[0xF], bit_zero)
+
+    def test_right_shift_reg(self):
+        self.cpu.shift_quirks = False
+        y = 0x8
+        for x in range(0xF):
+            for y in range(0xF):
+                for value in range(0, 0xFF, 0x10):
+                    self.cpu.operand = x << 8
+                    self.cpu.operand |= y << 4
+                    self.cpu.v[y] = value
+                    shifted_val = value >> 1
+                    self.cpu.v[0xF] = 0
+                    bit_zero = self.cpu.v[y] & 0x1
+                    self.cpu.right_shift_reg()
+                    self.assertEqual(self.cpu.v[x], shifted_val)
+                    self.assertEqual(self.cpu.v[0xF], bit_zero)
 
     def test_subtract_reg_from_reg1(self):
-        for source in range(0xF):
-            for target in range(0xF):
-                if source != target:
+        for x in range(0xF):
+            for y in range(0xF):
+                if x != y:
                     for source_val in range(0, 0xFF, 0x10):
                         for target_val in range(0xF):
-                            self.cpu.registers['v'][source] = source_val
-                            self.cpu.registers['v'][target] = target_val
-                            self.cpu.operand = source << 8
-                            self.cpu.operand += (target << 4)
+                            self.cpu.v[x] = source_val
+                            self.cpu.v[y] = target_val
+                            self.cpu.operand = x << 8
+                            self.cpu.operand += (y << 4)
                             self.cpu.subtract_reg_from_reg1()
                             if target_val > source_val:
-                                self.assertEqual(
-                                    self.cpu.registers['v'][source],
-                                    target_val - source_val)
-                                self.assertEqual(
-                                    self.cpu.registers['v'][0xF], 1)
+                                self.assertEqual(target_val - source_val, self.cpu.v[x])
+                                self.assertEqual(1, self.cpu.v[0xF])
+                            elif target_val == source_val:
+                                self.assertEqual(0, self.cpu.v[x])
+                                self.assertEqual(1, self.cpu.v[0xF])
                             else:
-                                self.assertEqual(
-                                    self.cpu.registers['v'][source],
-                                    256 + target_val - source_val)
-                                self.assertEqual(
-                                    self.cpu.registers['v'][0xF], 0)
+                                self.assertEqual(256 + target_val - source_val, self.cpu.v[x])
+                                self.assertEqual(0, self.cpu.v[0xF])
 
     def test_left_shift_reg(self):
-        for register in range(0xF):
-            for value in range(256):
-                self.cpu.registers['v'][register] = value
-                self.cpu.operand = register << 8
-                self.cpu.operand = self.cpu.operand + (register << 4)
-                for index in range(1, 8):
-                    shifted_val = value << index
-                    bit_seven = (shifted_val & 0x100) >> 9
-                    shifted_val = shifted_val & 0xFFFF
-                    self.cpu.registers['v'][0xF] = 0
+        self.cpu.shift_quirks = False
+        for x in range(0xF):
+            for y in range(0xF):
+                for value in range(256):
+                    self.cpu.v[y] = value
+                    self.cpu.operand = x << 8
+                    self.cpu.operand |= y << 4
+                    bit_seven = (value & 0x80) >> 8
+                    shifted_val = (value << 1) & 0xFF
+                    self.cpu.v[0xF] = 0
                     self.cpu.left_shift_reg()
-                    self.assertEqual(
-                        self.cpu.registers['v'][register],
-                        shifted_val)
-                    self.assertEqual(self.cpu.registers['v'][0xF], bit_seven)
+                    self.assertEqual(shifted_val, self.cpu.v[x])
+                    self.assertEqual(bit_seven, self.cpu.v[0xF])
+
+    def test_left_shift_reg_quirks(self):
+        self.cpu.shift_quirks = True
+        for x in range(0xF):
+            for value in range(256):
+                self.cpu.v[x] = value
+                self.cpu.operand = x << 8
+                shifted_val = value
+                for index in range(1, 8):
+                    bit_seven = (shifted_val & 0x80) >> 8
+                    shifted_val = (value << index) & 0xFF
+                    self.cpu.v[0xF] = 0
+                    self.cpu.left_shift_reg()
+                    self.assertEqual(shifted_val, self.cpu.v[x])
+                    self.assertEqual(bit_seven, self.cpu.v[0xF])
 
     def test_skip_if_reg_not_equal_reg(self):
         for register in range(0x10):
-            self.cpu.registers['v'][register] = register
+            self.cpu.v[register] = register
 
         for source in range(0x10):
             for target in range(0x10):
                 self.cpu.operand = source << 8
                 self.cpu.operand += (target << 4)
-                self.cpu.registers['pc'] = 0
+                self.cpu.pc = 0
                 self.cpu.skip_if_reg_not_equal_reg()
                 if source != target:
-                    self.assertEqual(self.cpu.registers['pc'], 2)
+                    self.assertEqual(self.cpu.pc, 2)
                 else:
-                    self.assertEqual(self.cpu.registers['pc'], 0)
+                    self.assertEqual(self.cpu.pc, 0)
 
     def test_load_index_reg_with_value(self):
         for value in range(0x10000):
             self.cpu.operand = value
             self.cpu.load_index_reg_with_value()
-            self.assertEqual(self.cpu.registers['index'], value & 0x0FFF)
+            self.assertEqual(self.cpu.index, value & 0x0FFF)
 
     def test_jump_to_index_plus_value(self):
         for index in range(0, 0xFFF, 0x10):
             for value in range(0, 0xFFF, 0x10):
-                self.cpu.registers['index'] = index
-                self.cpu.registers['pc'] = 0
+                self.cpu.v[0] = index
+                self.cpu.pc = 0
                 self.cpu.operand = value
-                self.cpu.jump_to_index_plus_value()
-                self.assertEqual(index + value, self.cpu.registers['pc'])
+                self.cpu.jump_to_register_plus_value()
+                self.assertEqual(index + value, self.cpu.pc)
+
+    def test_jump_to_index_plus_value_quirks(self):
+        self.cpu.jump_quirks = True
+        for register in range(0, 0xF):
+            for index in range(0, 0xFFF, 0x10):
+                for value in range(0, 0xFF, 0x10):
+                    self.cpu.v[register] = index
+                    self.cpu.pc = 0
+                    self.cpu.operand = value
+                    self.cpu.operand |= (register << 8)
+                    self.cpu.jump_to_register_plus_value()
+                    self.assertEqual(index + value, self.cpu.pc)
 
     def test_generate_random_number(self):
         for register in range(0x10):
             for value in range(0, 0xFF, 0x10):
-                self.cpu.registers['v'][register] = -1
+                self.cpu.v[register] = -1
                 self.cpu.operand = register << 8
                 self.cpu.operand += value
                 self.cpu.generate_random_number()
-                self.assertTrue(self.cpu.registers['v'][register] >= 0)
-                self.assertTrue(self.cpu.registers['v'][register] <= 255)
+                self.assertTrue(self.cpu.v[register] >= 0)
+                self.assertTrue(self.cpu.v[register] <= 255)
 
     def test_move_delay_timer_into_reg(self):
         for register in range(0x10):
             for value in range(0, 0xFF, 0x10):
-                self.cpu.timers['delay'] = value
+                self.cpu.delay = value
                 self.cpu.operand = register << 8
-                self.cpu.registers['v'][register] = 0
+                self.cpu.v[register] = 0
                 self.cpu.move_delay_timer_into_reg()
-                self.assertEqual(self.cpu.registers['v'][register], value)
+                self.assertEqual(self.cpu.v[register], value)
 
     def test_move_reg_into_delay_timer(self):
         for register in range(0x10):
             for value in range(0, 0xFF, 0x10):
-                self.cpu.registers['v'][register] = value
+                self.cpu.v[register] = value
                 self.cpu.operand = register << 8
-                self.cpu.timers['delay'] = 0
+                self.cpu.delay = 0
                 self.cpu.move_reg_into_delay_timer()
-                self.assertEqual(self.cpu.timers['delay'], value)
+                self.assertEqual(self.cpu.delay, value)
 
     def test_move_reg_into_sound_timer(self):
         for register in range(0x10):
             for value in range(0, 0xFF, 0x10):
-                self.cpu.registers['v'][register] = value
+                self.cpu.v[register] = value
                 self.cpu.operand = register << 8
-                self.cpu.timers['sound'] = 0
+                self.cpu.sound = 0
                 self.cpu.move_reg_into_sound_timer()
-                self.assertEqual(self.cpu.timers['sound'], value)
+                self.assertEqual(self.cpu.sound, value)
 
     def test_add_reg_into_index(self):
         for register in range(0x10):
             for index in range(0, 0xFFF, 0x10):
-                self.cpu.registers['index'] = index
-                self.cpu.registers['v'][register] = 0x89
+                self.cpu.index = index
+                self.cpu.v[register] = 0x89
                 self.cpu.operand = (register << 8)
                 self.cpu.add_reg_into_index()
-                self.assertEqual(index + 0x89, self.cpu.registers['index'])
+                self.assertEqual(index + 0x89, self.cpu.index)
 
     def test_load_index_with_reg_sprite(self):
         for number in range(0x10):
-            self.cpu.registers['index'] = 0xFFF
-            self.cpu.registers['v'][0] = number
+            self.cpu.index = 0xFFF
+            self.cpu.v[0] = number
             self.cpu.operand = 0xF029
             self.cpu.load_index_with_reg_sprite()
-            self.assertEqual(number * 5, self.cpu.registers['index'])
+            self.assertEqual(number * 5, self.cpu.index)
 
     def test_store_bcd_in_memory(self):
         for number in range(0x100):
             number_as_string = '{:03d}'.format(number)
-            self.cpu.registers['index'] = 0
-            self.cpu.registers['v'][0] = number
+            self.cpu.index = 0
+            self.cpu.v[0] = number
             self.cpu.operand = 0xF033
             self.cpu.store_bcd_in_memory()
             self.assertEqual(int(number_as_string[0]), self.cpu.memory[0])
@@ -429,52 +464,118 @@ class TestChip8CPU(unittest.TestCase):
             self.assertEqual(int(number_as_string[2]), self.cpu.memory[2])
 
     def test_store_regs_in_memory(self):
-        for register in range(0x10):
-            self.cpu.registers['v'][register] = register
-            self.cpu.operand = (register << 8)
+        index = 0x500
+        self.cpu.index = index
+
+        for x in range(0x10):
+            self.cpu.v[x] = x + 0x89
+
+        for num_regs in range(0x10):
+            self.cpu.index = index
+
+            for counter in range(0x10):
+                self.cpu.memory[self.cpu.index + counter] = 0x00
+
+            self.cpu.operand = (num_regs << 8)
+            index_before = self.cpu.index
             self.cpu.store_regs_in_memory()
-            self.cpu.registers['index'] = 0
-            for counter in range(register):
-                self.assertEqual(counter, self.cpu.memory[counter])
+            self.assertEqual(self.cpu.index, index_before + num_regs + 1)
+
+            for counter in range(0x10):
+                if counter > num_regs:
+                    self.assertEqual(self.cpu.memory[index + counter], 0x00)
+                else:
+                    self.assertEqual(self.cpu.memory[index + counter], 0x89 + counter)
+
+    def test_store_regs_in_memory_index_quirks(self):
+        self.cpu.index_quirks = True
+        index = 0x500
+        self.cpu.index = index
+
+        for x in range(0x10):
+            self.cpu.v[x] = x + 0x89
+
+        for num_regs in range(0x10):
+            self.cpu.index = index
+
+            for counter in range(0x10):
+                self.cpu.memory[self.cpu.index + counter] = 0x00
+
+            self.cpu.operand = (num_regs << 8)
+            index_before = self.cpu.index
+            self.cpu.store_regs_in_memory()
+            self.assertEqual(self.cpu.index, index_before)
+
+            for counter in range(0x10):
+                if counter > num_regs:
+                    self.assertEqual(self.cpu.memory[index + counter], 0x00)
+                else:
+                    self.assertEqual(self.cpu.memory[index + counter], 0x89 + counter)
 
     def test_read_regs_from_memory(self):
         index = 0x500
-        self.cpu.registers['index'] = index
+        self.cpu.index = index
 
-        for register in range(0xF):
+        for num_regs in range(0x10):
+            self.cpu.memory[index + num_regs] = num_regs + 0x89
+
+        for num_regs in range(0x10):
+            self.cpu.index = index
+            for reg_to_set in range(0x10):
+                self.cpu.v[reg_to_set] = 0
+
+            self.cpu.operand = 0xF065
+            self.cpu.operand |= (num_regs << 8)
+            index_before = self.cpu.index
+            self.cpu.read_regs_from_memory()
+            self.assertEqual(self.cpu.index, index_before + num_regs + 1)
+
+            for reg_to_check in range(0x10):
+                if reg_to_check > num_regs:
+                    self.assertEqual(self.cpu.v[reg_to_check], 0)
+                else:
+                    self.assertEqual(self.cpu.v[reg_to_check], reg_to_check + 0x89)
+
+    def test_read_regs_from_memory_index_quirks(self):
+        self.cpu.index_quirks = True
+        index = 0x500
+        self.cpu.index = index
+
+        for register in range(0x10):
             self.cpu.memory[index + register] = register + 0x89
 
-        for register in range(0xF):
-            for reg_to_set in range(0xF):
-                self.cpu.registers['v'][reg_to_set] = 0
+        for register in range(0x10):
+            self.cpu.index = index
+            for reg_to_set in range(0x10):
+                self.cpu.v[reg_to_set] = 0
 
-            self.cpu.operand = 0xF000
-            self.cpu.operand += (register << 8)
-            self.cpu.operand += 0x65
+            self.cpu.operand = 0xF065
+            self.cpu.operand |= (register << 8)
+            index_before = self.cpu.index
             self.cpu.read_regs_from_memory()
-            for reg_to_check in range(0xF):
+            self.assertEqual(self.cpu.index, index_before)
+
+            for reg_to_check in range(0x10):
                 if reg_to_check > register:
-                    self.assertEqual(self.cpu.registers['v'][reg_to_check], 0)
+                    self.assertEqual(self.cpu.v[reg_to_check], 0)
                 else:
-                    self.assertEqual(
-                        self.cpu.registers['v'][reg_to_check],
-                        reg_to_check + 0x89)
+                    self.assertEqual(self.cpu.v[reg_to_check], reg_to_check + 0x89)
 
     def test_store_regs_in_rpl(self):
         for register in range(0x10):
-            self.cpu.registers['v'][register] = register
+            self.cpu.v[register] = register
             self.cpu.operand = (register << 8)
             self.cpu.store_regs_in_rpl()
             for counter in range(register):
-                self.assertEqual(counter, self.cpu.registers['rpl'][counter])
+                self.assertEqual(counter, self.cpu.rpl[counter])
 
     def test_read_regs_from_rpl(self):
         for register in range(0xF):
-            self.cpu.registers['rpl'][register] = register + 0x89
+            self.cpu.rpl[register] = register + 0x89
 
         for register in range(0xF):
             for reg_to_set in range(0xF):
-                self.cpu.registers['v'][reg_to_set] = 0
+                self.cpu.v[reg_to_set] = 0
 
             self.cpu.operand = 0xF000
             self.cpu.operand += (register << 8)
@@ -482,10 +583,10 @@ class TestChip8CPU(unittest.TestCase):
             self.cpu.read_regs_from_rpl()
             for reg_to_check in range(0xF):
                 if reg_to_check > register:
-                    self.assertEqual(self.cpu.registers['v'][reg_to_check], 0)
+                    self.assertEqual(self.cpu.v[reg_to_check], 0)
                 else:
                     self.assertEqual(
-                        self.cpu.registers['v'][reg_to_check],
+                        self.cpu.v[reg_to_check],
                         reg_to_check + 0x89)
 
     def test_load_rom(self):
@@ -499,18 +600,18 @@ class TestChip8CPU(unittest.TestCase):
         self.assertEqual(ord('g'), self.cpu.memory[6])
 
     def test_decrement_timers_decrements_by_one(self):
-        self.cpu.timers['delay'] = 2
-        self.cpu.timers['sound'] = 2
+        self.cpu.delay = 2
+        self.cpu.sound = 2
         self.cpu.decrement_timers()
-        self.assertEqual(1, self.cpu.timers['delay'])
-        self.assertEqual(1, self.cpu.timers['sound'])
+        self.assertEqual(1, self.cpu.delay)
+        self.assertEqual(1, self.cpu.sound)
 
     def test_decrement_timers_does_not_go_negative(self):
-        self.cpu.timers['delay'] = 0
-        self.cpu.timers['sound'] = 0
+        self.cpu.delay = 0
+        self.cpu.sound = 0
         self.cpu.decrement_timers()
-        self.assertEqual(0, self.cpu.timers['delay'])
-        self.assertEqual(0, self.cpu.timers['sound'])
+        self.assertEqual(0, self.cpu.delay)
+        self.assertEqual(0, self.cpu.sound)
 
     def test_clear_screen(self):
         self.cpu.operand = 0xE0
@@ -520,62 +621,64 @@ class TestChip8CPU(unittest.TestCase):
     def test_clear_return_from_subroutine(self):
         self.cpu.operand = 0xEE
         address = 0x500
-        self.cpu.memory[self.cpu.registers['sp']] = address & 0x00FF
-        self.cpu.memory[self.cpu.registers['sp'] + 1] = \
+        self.cpu.memory[self.cpu.sp] = address & 0x00FF
+        self.cpu.memory[self.cpu.sp + 1] = \
             (address & 0xFF00) >> 8
-        self.cpu.registers['sp'] += 2
-        self.cpu.registers['pc'] = 0
+        self.cpu.sp += 2
+        self.cpu.pc = 0
         self.cpu.clear_return()
-        self.assertEqual(self.cpu.registers['pc'], address)
+        self.assertEqual(self.cpu.pc, address)
 
     def test_operation_9E_pc_skips_if_key_pressed(self):
         self.cpu.operand = 0x09E
-        self.cpu.registers['v'][0] = 1
-        self.cpu.registers['pc'] = 0
+        self.cpu.v[0] = 1
+        self.cpu.pc = 0
         result_table = [False] * 512
-        result_table[pygame.K_4] = True
+        result_table[pygame.K_1] = True
         with mock.patch("pygame.key.get_pressed", return_value=result_table) as key_mock:
             self.cpu.keyboard_routines()
             self.assertTrue(key_mock.asssert_called)
-            self.assertEqual(2, self.cpu.registers['pc'])
+            self.assertEqual(2, self.cpu.pc)
 
     def test_operation_9E_pc_does_not_skip_if_key_not_pressed(self):
         self.cpu.operand = 0x09E
-        self.cpu.registers['v'][0] = 1
-        self.cpu.registers['pc'] = 0
+        self.cpu.v[0] = 1
+        self.cpu.pc = 0
         result_table = [False] * 512
         with mock.patch("pygame.key.get_pressed", return_value=result_table) as key_mock:
             self.cpu.keyboard_routines()
             self.assertTrue(key_mock.asssert_called)
-            self.assertEqual(0, self.cpu.registers['pc'])
+            self.assertEqual(0, self.cpu.pc)
 
     def test_operation_A1_pc_skips_if_key_not_pressed(self):
         self.cpu.operand = 0x0A1
-        self.cpu.registers['v'][0] = 1
-        self.cpu.registers['pc'] = 0
+        self.cpu.v[0] = 1
+        self.cpu.pc = 0
         result_table = [False] * 512
         with mock.patch("pygame.key.get_pressed", return_value=result_table) as key_mock:
             self.cpu.keyboard_routines()
             self.assertTrue(key_mock.asssert_called)
-            self.assertEqual(2, self.cpu.registers['pc'])
+            self.assertEqual(2, self.cpu.pc)
 
     def test_operation_A1_pc_does_not_skip_if_key_pressed(self):
         self.cpu.operand = 0x0A1
-        self.cpu.registers['v'][0] = 1
-        self.cpu.registers['pc'] = 0
+        self.cpu.v[0] = 1
+        self.cpu.pc = 0
         result_table = [False] * 512
-        result_table[pygame.K_4] = True
+        result_table[pygame.K_1] = True
         with mock.patch("pygame.key.get_pressed", return_value=result_table) as key_mock:
             self.cpu.keyboard_routines()
             self.assertTrue(key_mock.asssert_called)
-            self.assertEqual(0, self.cpu.registers['pc'])
+            self.assertEqual(0, self.cpu.pc)
 
     def test_draw_zero_bytes_vf_not_set(self):
         self.cpu.operand = 0x00
-        self.cpu.registers['v'][0xF] = 1
+        self.cpu.v[0xF] = 1
+        self.screen.get_height.return_value = 64
+        self.screen.get_width.return_value = 128
         self.cpu.draw_sprite()
         self.assertTrue(self.screen.update_screen.assert_called)
-        self.assertEqual(0, self.cpu.registers['v'][0xF])
+        self.assertEqual(0, self.cpu.v[0xF])
 
     def test_execute_instruction_raises_exception_on_unknown_op_code(self):
         with self.assertRaises(UnknownOpCodeException) as context:
@@ -589,11 +692,11 @@ class TestChip8CPU(unittest.TestCase):
         self.assertEqual("Unknown op-code: 8008", str(context.exception))
 
     def test_execute_instruction_on_operand_in_memory(self):
-        self.cpu.registers['pc'] = 0x200
+        self.cpu.pc = 0x200
         self.cpu.memory[0x200] = 0x61
         result = self.cpu.execute_instruction()
         self.assertEqual(0x6100, result)
-        self.assertEqual(0x202, self.cpu.registers['pc'])
+        self.assertEqual(0x202, self.cpu.pc)
 
     def test_execute_logical_instruction_raises_exception_on_unknown_op_codes(self):
         for x in range(8, 14):
@@ -647,6 +750,8 @@ class TestChip8CPU(unittest.TestCase):
 
     def test_draw_extended_called(self):
         self.cpu.mode = MODE_EXTENDED
+        self.screen.get_height.return_value = 64
+        self.screen.get_width.return_value = 128
         self.cpu.draw_sprite()
         self.assertTrue(self.cpu_spy.draw_extended.assert_called)
 
@@ -654,6 +759,8 @@ class TestChip8CPU(unittest.TestCase):
         screen = Chip8Screen(2)
         screen.init_display()
         screen_mock = mock.Mock(wraps=screen, spec=screen)
+        screen_mock.height = 32
+        screen_mock.width = 64
         self.cpu = Chip8CPU(screen_mock)
         self.cpu.memory[0] = 0xAA
         self.cpu.draw_normal(0, 0, 1)
@@ -673,6 +780,8 @@ class TestChip8CPU(unittest.TestCase):
         screen = Chip8Screen(2)
         screen.init_display()
         screen_mock = mock.Mock(wraps=screen, spec=screen)
+        screen_mock.height = 32
+        screen_mock.width = 64
         self.cpu = Chip8CPU(screen_mock)
         self.cpu.memory[0] = 0xAA
         self.cpu.draw_normal(0, 0, 1)
@@ -701,6 +810,8 @@ class TestChip8CPU(unittest.TestCase):
         screen = Chip8Screen(2)
         screen.init_display()
         screen_mock = mock.Mock(wraps=screen, spec=screen)
+        screen_mock.height = 32
+        screen_mock.width = 64
         self.cpu = Chip8CPU(screen_mock)
         self.cpu.memory[0] = 0xAA
         self.cpu.draw_normal(0, 0, 1)
@@ -727,46 +838,42 @@ class TestChip8CPU(unittest.TestCase):
             ])
 
     def test_load_index_with_sprite(self):
-        self.cpu.registers['v'][1] = 10
+        self.cpu.v[1] = 10
         self.cpu.operand = 0xF130
         self.cpu.load_index_with_extended_reg_sprite()
-        self.assertEqual(100, self.cpu.registers['index'])
+        self.assertEqual(100, self.cpu.index)
 
     def test_str_function(self):
-        self.cpu.registers['v'][0] = 0
-        self.cpu.registers['v'][1] = 1
-        self.cpu.registers['v'][2] = 2
-        self.cpu.registers['v'][3] = 3
-        self.cpu.registers['v'][4] = 4
-        self.cpu.registers['v'][5] = 5
-        self.cpu.registers['v'][6] = 6
-        self.cpu.registers['v'][7] = 7
-        self.cpu.registers['v'][8] = 8
-        self.cpu.registers['v'][9] = 9
-        self.cpu.registers['v'][10] = 10
-        self.cpu.registers['v'][11] = 11
-        self.cpu.registers['v'][12] = 12
-        self.cpu.registers['v'][13] = 13
-        self.cpu.registers['v'][14] = 14
-        self.cpu.registers['v'][15] = 15
-        self.cpu.registers['pc'] = 0xBEEF
+        self.cpu.v[0] = 0
+        self.cpu.v[1] = 1
+        self.cpu.v[2] = 2
+        self.cpu.v[3] = 3
+        self.cpu.v[4] = 4
+        self.cpu.v[5] = 5
+        self.cpu.v[6] = 6
+        self.cpu.v[7] = 7
+        self.cpu.v[8] = 8
+        self.cpu.v[9] = 9
+        self.cpu.v[10] = 10
+        self.cpu.v[11] = 11
+        self.cpu.v[12] = 12
+        self.cpu.v[13] = 13
+        self.cpu.v[14] = 14
+        self.cpu.v[15] = 15
+        self.cpu.pc = 0xBEEF
         self.cpu.operand = 0xBA
-        self.cpu.registers['index'] = 0xDEAD
+        self.cpu.index = 0xDEAD
         result = str(self.cpu)
         self.assertEqual(
-            "PC: BEED  OP:   BA\nV0:  0\nV1:  1\nV2:  2\nV3:  3\nV4:  4\nV5:  5\nV6:  6"
-            "\nV7:  7\nV8:  8\nV9:  9\nVA:  A\nVB:  B\nVC:  C\nVD:  D\nVE:  E\nVF:  F\nI: DEAD\n", result)
+            "PC:0000 OP:00BA V0:00 V1:01 V2:02 V3:03 V4:04 V5:05 V6:06 " +
+            "V7:07 V8:08 V9:09 VA:0A VB:0B VC:0C VD:0D VE:0E VF:0F I:DEAD " +
+            "DELAY:0 SOUND:0 None", result)
 
-    def test_wait_for_keypress(self):
-        EventMock = collections.namedtuple('EventMock', 'type')
-        event_mock = EventMock(type=pygame.KEYDOWN)
-        self.cpu.operand = 0x0
-        with mock.patch("pygame.event.wait", return_value=event_mock):
-            result_table = [False] * 512
-            result_table[pygame.K_4] = True
-            with mock.patch("pygame.key.get_pressed", return_value=result_table):
-                self.cpu.wait_for_keypress()
-                self.assertEqual(0x1, self.cpu.registers['v'][0])
+    def test_wait_for_keypress_sets_awaiting_keypress(self):
+        self.cpu.operand = 0x0100
+        self.cpu.wait_for_keypress()
+        self.assertEqual(1, self.cpu.keypress_register)
+        self.assertTrue(self.cpu.awaiting_keypress)
 
 # M A I N #####################################################################
 
