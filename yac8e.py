@@ -1,5 +1,6 @@
+#!/usr/bin/env python
 """
-Copyright (C) 2012-2019 Craig Thomas
+Copyright (C) 2024 Craig Thomas
 This project uses an MIT style license - see LICENSE for details.
 
 A simple Chip 8 emulator - see the README file for more information.
@@ -35,6 +36,34 @@ def parse_arguments():
         "--delay", help="sets the CPU operation to take at least "
         "the specified number of milliseconds to execute (default is 1)",
         type=int, default=1, dest="op_delay")
+    parser.add_argument(
+        "--shift_quirks", help="Enable shift quirks",
+        action="store_true", dest="shift_quirks"
+    )
+    parser.add_argument(
+        "--index_quirks", help="Enable index quirks",
+        action="store_true", dest="index_quirks"
+    )
+    parser.add_argument(
+        "--jump_quirks", help="Enable jump quirks",
+        action="store_true", dest="jump_quirks"
+    )
+    parser.add_argument(
+        "--clip_quirks", help="Enable screen clipping quirks",
+        action="store_true", dest="clip_quirks"
+    )
+    parser.add_argument(
+        "--logic_quirks", help="Enable logic quirks",
+        action="store_true", dest="logic_quirks"
+    )
+    parser.add_argument(
+        "--mem_size", help="Maximum memory size (4K default)",
+        dest="mem_size", choices=["4K", "64K"], default="4K"
+    )
+    parser.add_argument(
+        "--trace", help="print registers and instructions to STDOUT",
+        action="store_true", dest="trace"
+    )
     return parser.parse_args()
 
 
