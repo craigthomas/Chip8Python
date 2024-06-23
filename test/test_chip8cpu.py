@@ -37,6 +37,25 @@ class TestChip8CPU(unittest.TestCase):
     def test_memory_size_default_64k(self):
         self.assertEqual(65536, len(self.cpu.memory))
 
+    def test_pitch_init_64(self):
+        self.assertEqual(64, self.cpu.pitch)
+        self.assertEqual(4000, self.cpu.playback_rate)
+
+    def test_load_pitch(self):
+        self.cpu.v[1] = 112
+        self.cpu.operand = 0xF13A
+        self.cpu.load_pitch()
+        self.assertEqual(112, self.cpu.pitch)
+        self.assertEqual(8000, self.cpu.playback_rate)
+
+    def test_load_pitch_integration(self):
+        self.cpu.v[1] = 112
+        self.cpu.memory[0x0200] = 0xF1
+        self.cpu.memory[0x0201] = 0x3A
+        self.cpu.execute_instruction()
+        self.assertEqual(112, self.cpu.pitch)
+        self.assertEqual(8000, self.cpu.playback_rate)
+
     def test_return_from_subroutine(self):
         for address in range(0x200, 0xFFFF, 0x10):
             self.cpu.memory[self.cpu.sp] = address & 0x00FF
@@ -293,7 +312,6 @@ class TestChip8CPU(unittest.TestCase):
 
     def test_right_shift_reg(self):
         self.cpu.shift_quirks = False
-        y = 0x8
         for x in range(0xF):
             for y in range(0xF):
                 for value in range(0, 0xFF, 0x10):
