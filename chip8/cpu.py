@@ -91,6 +91,8 @@ class Chip8CPU:
         self.sp = STACK_POINTER_START
         self.index = 0
         self.rpl = [0] * NUM_REGISTERS
+        self.pitch = 64
+        self.playback_rate = 4000
 
         self.shift_quirks = shift_quirks
         self.index_quirks = index_quirks
@@ -150,6 +152,7 @@ class Chip8CPU:
             0x29: self.load_index_with_reg_sprite,           # Fs29 - LOAD I, Vs
             0x30: self.load_index_with_extended_reg_sprite,  # Fs30 - LOAD I, Vs
             0x33: self.store_bcd_in_memory,                  # Fs33 - BCD
+            0x3A: self.load_pitch,                           # Fx3A - PITCH Vx
             0x55: self.store_regs_in_memory,                 # Fs55 - STOR [I], Vs
             0x65: self.read_regs_from_memory,                # Fs65 - LOAD Vs, [I]
             0x75: self.store_regs_in_rpl,                    # Fs75 - SRPL Vs
@@ -923,6 +926,21 @@ class Chip8CPU:
         self.memory[self.index + 2] = int(bcd_value[2])
         self.last_op = f"BCD V{x:01X} ({bcd_value})"
 
+    def load_pitch(self):
+        """
+        Fx3A - PITCH Vx
+
+        Loads the value from register x into the pitch register. The
+        register calculation is as follows:
+
+           Bits:  15-12     11-8      7-4       3-0
+                    F         x        3         A
+        """
+        x = (self.operand & 0x0F00) >> 8
+        self.pitch = self.v[x]
+        self.playback_rate = 4000 * 2 ** ((self.pitch - 64) / 48)
+        self.last_op = f"PITCH V{x:01X}"
+
     def store_regs_in_memory(self):
         """
         Fn55 - STOR [I]
@@ -1011,6 +1029,8 @@ class Chip8CPU:
         self.sp = STACK_POINTER_START
         self.index = 0
         self.rpl = [0] * NUM_REGISTERS
+        self.pitch = 64
+        self.playback_rate = 4000
 
     def load_rom(self, filename, offset=PROGRAM_COUNTER_START):
         """
