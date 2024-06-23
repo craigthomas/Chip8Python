@@ -34,6 +34,20 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu = Chip8CPU(self.screen)
         self.cpu_spy = mock.Mock(wraps=self.cpu)
 
+    def test_bitplane_1_init(self):
+        self.assertEqual(1, self.cpu.bitplane)
+
+    def test_set_bitplane(self):
+        self.cpu.operand = 0xF201
+        self.cpu.set_bitplane()
+        self.assertEqual(2, self.cpu.bitplane)
+
+    def test_set_bitplane_integration(self):
+        self.cpu.memory[0x0200] = 0xF2
+        self.cpu.memory[0x0201] = 0x01
+        self.cpu.execute_instruction()
+        self.assertEqual(2, self.cpu.bitplane)
+
     def test_memory_size_default_64k(self):
         self.assertEqual(65536, len(self.cpu.memory))
 
