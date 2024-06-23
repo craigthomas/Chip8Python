@@ -24,6 +24,7 @@
       3. [Jump Quirks](#jump-quirks)
       4. [Clip Quirks](#clip-quirks)
       5. [Logic Quirks](#logic-quirks)
+   5. [Memory Size](#memory-size)
 5. [Customization](#customization)
    1. [Keys](#keys)
    2. [Debug Keys](#debug-keys)
@@ -292,6 +293,15 @@ sprites will not be allowed to wrap.
 The `--logic_quirks` controls whether the F register is cleared after logic operations
 such as AND, OR, and XOR. By default, F is left undefined following these operations.
 With the flag turned on, F will always be cleared.
+
+
+### Memory Size
+
+The original specification of the Chip8 language defined a 4K memory size for the
+interpreter. The addition of the XO Chip extensions require a 64K memory size
+for the interpreter. By default, the interpreter will start with a 64K memory size,
+but this behavior can be controlled with the `--mem_size` flag. Valid options are
+`64K` or `4K` for historical purposes.
 
 
 ## Customization

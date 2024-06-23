@@ -57,8 +57,8 @@ def parse_arguments():
         action="store_true", dest="logic_quirks"
     )
     parser.add_argument(
-        "--mem_size", help="Maximum memory size (4K default)",
-        dest="mem_size", choices=["4K", "64K"], default="4K"
+        "--mem_size", help="Maximum memory size (64K default)",
+        dest="mem_size", choices=["4K", "64K"], default="64K"
     )
     parser.add_argument(
         "--trace", help="print registers and instructions to STDOUT",
