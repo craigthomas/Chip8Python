@@ -36,7 +36,7 @@ class UnknownOpCodeException(Exception):
     A class to raise unknown op code exceptions.
     """
     def __init__(self, op_code):
-        Exception.__init__(self, f"Unknown op-code: {op_code:X}")
+        Exception.__init__(self, f"Unknown op-code: {op_code:04X}")
 
 
 class Chip8CPU:
@@ -94,6 +94,8 @@ class Chip8CPU:
         self.pitch = 64
         self.playback_rate = 4000
 
+        self.bitplane = 1
+
         self.shift_quirks = shift_quirks
         self.index_quirks = index_quirks
         self.jump_quirks = jump_quirks
@@ -125,6 +127,16 @@ class Chip8CPU:
             0xF: self.misc_routines,                 # see subfunctions below
         }
 
+        self.clear_routines = {
+            0xE0: self.clear_screen,                 # 00E0 - CLS
+            0xEE: self.return_from_subroutine,       # 00EE - RTS
+            0xFB: self.scroll_right,                 # 00FB - SCRR
+            0xFC: self.scroll_left,                  # 00FC - SCRL
+            0xFD: self.exit,                         # 00FD - EXIT
+            0xFE: self.disable_extended_mode,        # 00FE - SET NORMAL
+            0xFF: self.enable_extended_mode,         # 00FF - SET EXTENDED
+        }
+
         # This set of operations is invoked when the operand loaded into the
         # CPU starts with 8 (e.g. operand 8nn0 would call
         # self.move_reg_into_reg)
@@ -144,6 +156,7 @@ class Chip8CPU:
         # CPU starts with F (e.g. operand Fn07 would call
         # self.move_delay_timer_into_reg)
         self.misc_routine_lookup = {
+            0x01: self.set_bitplane,                         # Fn01 - BITPLANE n
             0x07: self.move_delay_timer_into_reg,            # Ft07 - LOAD Vt, DELAY
             0x0A: self.wait_for_keypress,                    # Ft0A - KEYD Vt
             0x15: self.move_reg_into_delay_timer,            # Fs15 - LOAD DELAY, Vs
@@ -249,17 +262,8 @@ class Chip8CPU:
 
     def clear_return(self):
         """
-        Opcodes starting with a 0 are one of the following instructions:
-
-            0nnn - Jump to machine code function (ignored)
-            00Cn - Scroll n pixels down
-            00E0 - Clear the display
-            00EE - Return from subroutine
-            00FB - Scroll 4 pixels right
-            00FC - Scroll 4 pixels left
-            00FD - Exit
-            00FE - Disable extended mode
-            00FF - Enable extended mode
+        Opcodes starting with a 0 usually correspond to screen clearing or scrolling
+        routines, or emulator exit routines.
         """
         operation = self.operand & 0x00FF
         sub_operation = operation & 0x00F0
@@ -267,32 +271,20 @@ class Chip8CPU:
             num_lines = self.operand & 0x000F
             self.screen.scroll_down(num_lines)
             self.last_op = f"Scroll Down {num_lines:01X}"
+        else:
+            try:
+                self.clear_routines[operation]()
+            except KeyError:
+                raise UnknownOpCodeException(self.operand)
 
-        if operation == 0x00E0:
-            self.screen.clear_screen()
-            self.last_op = "CLS"
+    def clear_screen(self):
+        """
+        00E0 - CLS
 
-        if operation == 0x00EE:
-            self.return_from_subroutine()
-
-        if operation == 0x00FB:
-            self.screen.scroll_right()
-            self.last_op = "Scroll Right"
-
-        if operation == 0x00FC:
-            self.screen.scroll_left()
-            self.last_op = "Scroll Left"
-
-        if operation == 0x00FD:
-            self.running = False
-
-        if operation == 0x00FE:
-            self.disable_extended_mode()
-            self.last_op = "Set Normal Mode"
-
-        if operation == 0x00FF:
-            self.enable_extended_mode()
-            self.last_op = "Set Extended Mode"
+        Clears the screen
+        """
+        self.screen.clear_screen()
+        self.last_op = "CLS"
 
     def return_from_subroutine(self):
         """
@@ -306,6 +298,53 @@ class Chip8CPU:
         self.sp -= 1
         self.pc += self.memory[self.sp]
         self.last_op = "RTS"
+
+    def scroll_right(self):
+        """
+        00FB - SCRR
+
+        Scrolls the screen right by 4 pixels.
+        """
+        self.screen.scroll_right()
+        self.last_op = "Scroll Right"
+
+    def scroll_left(self):
+        """
+        00FC - SCRL
+
+        Scrolls the screen left by 4 pixels.
+        """
+        self.screen.scroll_left()
+        self.last_op = "Scroll Left"
+
+    def exit(self):
+        """
+        00FD - EXIT
+
+        Exits the emulator.
+        """
+        self.running = False
+        self.last_op = "EXIT"
+
+    def disable_extended_mode(self):
+        """
+        00FE - SET NORMAL
+
+        Disables extended mode.
+        """
+        self.screen.set_normal()
+        self.mode = MODE_NORMAL
+        self.last_op = "Set Normal Mode"
+
+    def enable_extended_mode(self):
+        """
+        00FF - SET EXTENDED
+
+        Set extended mode.
+        """
+        self.screen.set_extended()
+        self.mode = MODE_EXTENDED
+        self.last_op = "Set Extended Mode"
 
     def jump_to_address(self):
         """
@@ -778,6 +817,26 @@ class Chip8CPU:
                     self.v[0xF] += 1
         self.screen.update()
 
+    def set_bitplane(self):
+        """
+        Fn01 - BITPLANE n
+
+        Selects the active bitplane for screen drawing operations. Bitplane
+        selection is as follows:
+
+          0 - no bitplane selected
+          1 - first bitplane selected
+          2 - second bitplane selected
+          3 - first and second bitplane selected
+
+        The bitplane selection values is as follows:
+
+           Bits:  15-12     11-8      7-4       3-0
+                    F         n        0         1
+        """
+        self.bitplane = (self.operand & 0x0F00) >> 8
+        self.last_op = f"BITPLANE {self.bitplane:01X}"
+
     def move_delay_timer_into_reg(self):
         """
         Fx07 - LOAD Vx, DELAY
@@ -1031,6 +1090,7 @@ class Chip8CPU:
         self.rpl = [0] * NUM_REGISTERS
         self.pitch = 64
         self.playback_rate = 4000
+        self.bitplane = 1
 
     def load_rom(self, filename, offset=PROGRAM_COUNTER_START):
         """
@@ -1054,18 +1114,5 @@ class Chip8CPU:
         self.delay -= 1 if self.delay > 0 else 0
         self.sound -= 1 if self.delay > 0 else 0
 
-    def enable_extended_mode(self):
-        """
-        Set extended mode.
-        """
-        self.screen.set_extended()
-        self.mode = MODE_EXTENDED
-
-    def disable_extended_mode(self):
-        """
-        Disables extended mode.
-        """
-        self.screen.set_normal()
-        self.mode = MODE_NORMAL
 
 # E N D   O F   F I L E ########################################################
