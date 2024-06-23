@@ -6,8 +6,6 @@ A Chip 8 CPU - see the README file for more information.
 """
 # I M P O R T S ###############################################################
 
-import pygame
-
 from pygame import key
 from random import randint
 
@@ -69,7 +67,7 @@ class Chip8CPU:
             jump_quirks=False,
             clip_quirks=False,
             logic_quirks=False,
-            mem_size="4K"
+            mem_size="64K"
     ):
         """
         Initialize the Chip8 CPU. The only required parameter is a screen

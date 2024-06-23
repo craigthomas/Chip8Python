@@ -9,7 +9,6 @@ A simple Chip 8 emulator - see the README file for more information.
 import mock
 import pygame
 import unittest
-import collections
 
 from mock import patch, call
 
@@ -34,6 +33,9 @@ class TestChip8CPU(unittest.TestCase):
         self.screen = mock.MagicMock()
         self.cpu = Chip8CPU(self.screen)
         self.cpu_spy = mock.Mock(wraps=self.cpu)
+
+    def test_memory_size_default_64k(self):
+        self.assertEqual(65536, len(self.cpu.memory))
 
     def test_return_from_subroutine(self):
         for address in range(0x200, 0xFFFF, 0x10):
