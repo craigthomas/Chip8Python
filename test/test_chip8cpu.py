@@ -34,6 +34,11 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu = Chip8CPU(self.screen)
         self.cpu_spy = mock.Mock(wraps=self.cpu)
 
+    def test_clear_return_with_unknown_opcode(self):
+        with self.assertRaises(UnknownOpCodeException) as context:
+            self.cpu.execute_instruction(operand=0x00FA)
+        self.assertEqual("Unknown op-code: 00FA", str(context.exception))
+
     def test_bitplane_1_init(self):
         self.assertEqual(1, self.cpu.bitplane)
 
@@ -747,7 +752,7 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.operand = 0x0
         with self.assertRaises(UnknownOpCodeException) as context:
             self.cpu.misc_routines()
-        self.assertEqual("Unknown op-code: 0", str(context.exception))
+        self.assertEqual("Unknown op-code: 0000", str(context.exception))
 
     def test_scroll_down_called(self):
         self.cpu.operand = 0x00C4
