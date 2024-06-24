@@ -955,6 +955,57 @@ class TestChip8CPU(unittest.TestCase):
         self.assertEqual(6, self.cpu.memory[0x5001])
         self.assertEqual(5, self.cpu.memory[0x5002])
 
+    def test_readsubset_regs_one_two(self):
+        self.cpu.v[1] = 5
+        self.cpu.v[2] = 6
+        self.cpu.index = 0x5000
+        self.cpu.operand = 0xF123
+        self.cpu.memory[0x5000] = 7
+        self.cpu.memory[0x5001] = 8
+        self.cpu.read_subset_regs_in_memory()
+        self.assertEqual(7, self.cpu.v[1])
+        self.assertEqual(8, self.cpu.v[2])
+
+    def test_read_subset_regs_one_one(self):
+        self.cpu.v[1] = 5
+        self.cpu.v[2] = 6
+        self.cpu.index = 0x5000
+        self.cpu.operand = 0xF113
+        self.cpu.memory[0x5000] = 7
+        self.cpu.memory[0x5001] = 8
+        self.cpu.read_subset_regs_in_memory()
+        self.assertEqual(7, self.cpu.v[1])
+        self.assertEqual(6, self.cpu.v[2])
+
+    def test_read_subset_regs_three_one(self):
+        self.cpu.v[1] = 5
+        self.cpu.v[2] = 6
+        self.cpu.v[3] = 7
+        self.cpu.index = 0x5000
+        self.cpu.operand = 0xF313
+        self.cpu.memory[0x5000] = 8
+        self.cpu.memory[0x5001] = 9
+        self.cpu.memory[0x5002] = 10
+        self.cpu.read_subset_regs_in_memory()
+        self.assertEqual(10, self.cpu.v[1])
+        self.assertEqual(9, self.cpu.v[2])
+        self.assertEqual(8, self.cpu.v[3])
+
+    def test_read_subset_regs_integration(self):
+        self.cpu.v[1] = 5
+        self.cpu.v[2] = 6
+        self.cpu.v[3] = 7
+        self.cpu.index = 0x5000
+        self.cpu.memory[0x0200] = 0xF3
+        self.cpu.memory[0x0201] = 0x13
+        self.cpu.memory[0x5000] = 8
+        self.cpu.memory[0x5001] = 9
+        self.cpu.memory[0x5002] = 10
+        self.cpu.execute_instruction()
+        self.assertEqual(10, self.cpu.v[1])
+        self.assertEqual(9, self.cpu.v[2])
+        self.assertEqual(8, self.cpu.v[3])
+
 # M A I N #####################################################################
 
 
