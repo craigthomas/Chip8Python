@@ -64,6 +64,22 @@ def parse_arguments():
         "--trace", help="print registers and instructions to STDOUT",
         action="store_true", dest="trace"
     )
+    parser.add_argument(
+        "--color_0", help="the hex color to use for the background (default=000000)",
+        dest="color_0", default="000000"
+    )
+    parser.add_argument(
+        "--color_1", help="the hex color to use for bitplane 1 (default=666666)",
+        dest="color_1", default="666666"
+    )
+    parser.add_argument(
+        "--color_2", help="the hex color to use for bitplane 2 (default=BBBBBB)",
+        dest="color_2", default="BBBBBB"
+    )
+    parser.add_argument(
+        "--color_3", help="the hex color to use for bitplane overlaps (default=FFFFFF)",
+        dest="color_3", default="FFFFFF"
+    )
     return parser.parse_args()
 
 
