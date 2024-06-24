@@ -23,7 +23,13 @@ def main_loop(args):
     """
     delay_timer_event = 24
 
-    screen = Chip8Screen(scale_factor=args.scale)
+    screen = Chip8Screen(
+        scale_factor=args.scale,
+        color_0=args.color_0,
+        color_1=args.color_1,
+        color_2=args.color_2,
+        color_3=args.color_3,
+    )
     screen.init_display()
     cpu = Chip8CPU(
         screen,

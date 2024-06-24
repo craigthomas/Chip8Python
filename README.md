@@ -25,6 +25,7 @@
       4. [Clip Quirks](#clip-quirks)
       5. [Logic Quirks](#logic-quirks)
    5. [Memory Size](#memory-size)
+   6. [Colors](#colors)
 5. [Customization](#customization)
    1. [Keys](#keys)
    2. [Debug Keys](#debug-keys)
@@ -302,6 +303,25 @@ interpreter. The addition of the XO Chip extensions require a 64K memory size
 for the interpreter. By default, the interpreter will start with a 64K memory size,
 but this behavior can be controlled with the `--mem_size` flag. Valid options are
 `64K` or `4K` for historical purposes.
+
+
+### Colors
+
+The original Chip8 language specification called for pixels to be turned on or 
+off. It did not specify what color the pixel states had to be. The emulator 
+lets the user specify what colors they want to use when the emulator is running.
+Color values are specified by using HTML hex values such as `AABBCC` without the
+leading `#`. There are currently 4 color values that can be set:
+
+* `--color_0` specifies the background color. This defaults to `000000`.
+* `--color_1` specifies bitplane 1 color. This defaults to `666666`.
+* `--color_2` specifies bitplane 2 color. This defaults to `BBBBBB`.
+* `--color_3` specifies bitplane 1 and 2 overlap color. This defaults to `FFFFFF`.
+
+For Chip8 and SuperChip 8 programs, only the background color `color_0` (for pixels
+turned off) and the bitplane 1 color `color_1` (for pixels turned on) are used.
+Only XO Chip programs will use `color_2` and `color_3` when the additional bitplanes
+are potentially used.
 
 
 ## Customization

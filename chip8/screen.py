@@ -18,13 +18,6 @@ SCREEN_MODE_EXTENDED = 1
 # of a pixel.
 SCREEN_DEPTH = 8
 
-# The colors of the pixels to draw. The Chip 8 supports two colors: 0 (off)
-# and 1 (on). The format of the colors is in RGBA format.
-PIXEL_COLORS = {
-    0: Color(0, 0, 0, 255),
-    1: Color(250, 250, 250, 255)
-}
-
 # C L A S S E S ###############################################################
 
 
@@ -34,7 +27,14 @@ class Chip8Screen:
     with 2 colors. In this emulator, this translates to color 0 (off) and color
     1 (on).
     """
-    def __init__(self, scale_factor):
+    def __init__(
+            self,
+            scale_factor,
+            color_0="000000",
+            color_1="666666",
+            color_2="BBBBBB",
+            color_3="FFFFFF"
+    ):
         """
         Initializes the main screen. The scale factor is used to modify
         the size of the main screen, since the original resolution of the
@@ -47,6 +47,12 @@ class Chip8Screen:
         self.scale_factor = scale_factor
         self.surface = None
         self.mode = SCREEN_MODE_NORMAL
+        self.pixel_colors = {
+            0: Color(f"#{color_0}"),
+            1: Color(f"#{color_1}"),
+            2: Color(f"#{color_2}"),
+            3: Color(f"#{color_3}"),
+        }
 
     def init_display(self):
         """
@@ -81,7 +87,7 @@ class Chip8Screen:
         x_base = (x_pos * mode_scale) * self.scale_factor
         y_base = (y_pos * mode_scale) * self.scale_factor
         draw.rect(self.surface,
-                  PIXEL_COLORS[pixel_color],
+                  self.pixel_colors[pixel_color],
                   (x_base, y_base, mode_scale * self.scale_factor, mode_scale * self.scale_factor))
 
     def get_pixel(self, x_pos, y_pos):
@@ -97,7 +103,7 @@ class Chip8Screen:
         x_scale = (x_pos * mode_scale) * self.scale_factor
         y_scale = (y_pos * mode_scale) * self.scale_factor
         pixel_color = self.surface.get_at((x_scale, y_scale))
-        return pixel_color == PIXEL_COLORS[1]
+        return pixel_color == self.pixel_colors[1]
 
     def get_width(self):
         """
@@ -119,7 +125,7 @@ class Chip8Screen:
         """
         Turns off all the pixels on the screen (writes color 0 to all pixels).
         """
-        self.surface.fill(PIXEL_COLORS[0])
+        self.surface.fill(self.pixel_colors[0])
 
     @staticmethod
     def update():
@@ -152,7 +158,7 @@ class Chip8Screen:
         mode_scale = 1 if self.mode == SCREEN_MODE_EXTENDED else 2
         actual_lines = num_lines * mode_scale * self.scale_factor
         self.surface.scroll(0, actual_lines)
-        self.surface.fill(PIXEL_COLORS[0], (0, 0, self.width * mode_scale * self.scale_factor, actual_lines))
+        self.surface.fill(self.pixel_colors[0], (0, 0, self.width * mode_scale * self.scale_factor, actual_lines))
         self.update()
 
     def scroll_left(self):
@@ -163,7 +169,7 @@ class Chip8Screen:
         actual_lines = 4 * mode_scale * self.scale_factor
         left = (self.width * mode_scale * self.scale_factor) - actual_lines
         self.surface.scroll(-actual_lines, 0)
-        self.surface.fill(PIXEL_COLORS[0], (left, 0, actual_lines, self.height * mode_scale * self.scale_factor))
+        self.surface.fill(self.pixel_colors[0], (left, 0, actual_lines, self.height * mode_scale * self.scale_factor))
         self.update()
 
     def scroll_right(self):
@@ -173,7 +179,7 @@ class Chip8Screen:
         mode_scale = 1 if self.mode == SCREEN_MODE_EXTENDED else 2
         actual_lines = 4 * mode_scale * self.scale_factor
         self.surface.scroll(actual_lines, 0)
-        self.surface.fill(PIXEL_COLORS[0], (0, 0, actual_lines, self.height * mode_scale * self.scale_factor))
+        self.surface.fill(self.pixel_colors[0], (0, 0, actual_lines, self.height * mode_scale * self.scale_factor))
         self.update()
 
 # E N D   O F   F I L E ########################################################
