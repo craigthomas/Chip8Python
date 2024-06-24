@@ -258,6 +258,8 @@ class Chip8CPU:
         sub_operation = self.operand & 0x000F
         if sub_operation == 0x2:
             self.store_subset_regs_in_memory()
+        elif sub_operation == 0x3:
+            self.read_subset_regs_in_memory()
         else:
             try:
                 self.misc_routine_lookup[operation]()
@@ -866,6 +868,32 @@ class Chip8CPU:
                 pointer += 1
 
         self.last_op = f"STORSUB [I], {x:01X}, {y:01X}"
+
+    def read_subset_regs_in_memory(self):
+        """
+        Fxy3 - LOADSUB [I], Vx, Vy
+
+        Load a subset of registers from x to y in memory starting at index.
+        The x and y calculation is as follows:
+
+           Bits:  15-12     11-8      7-4       3-0
+                    F         x        y         2
+
+        If x is larger than y, then they will be loaded in reverse order.
+        """
+        x = (self.operand & 0x0F00) >> 8
+        y = (self.operand & 0x00F0) >> 4
+        pointer = 0
+        if y >= x:
+            for z in range(x, y+1):
+                self.v[z] = self.memory[self.index + pointer]
+                pointer += 1
+        else:
+            for z in range(x, y-1, -1):
+                self.v[z] = self.memory[self.index + pointer]
+                pointer += 1
+
+        self.last_op = f"LOADSUB [I], {x:01X}, {y:01X}"
 
     def move_delay_timer_into_reg(self):
         """
