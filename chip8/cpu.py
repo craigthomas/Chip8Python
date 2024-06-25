@@ -156,6 +156,7 @@ class Chip8CPU:
         # CPU starts with F (e.g. operand Fn07 would call
         # self.move_delay_timer_into_reg)
         self.misc_routine_lookup = {
+            0x00: self.index_load_long,                      # F000 - LOADLONG
             0x01: self.set_bitplane,                         # Fn01 - BITPLANE n
             0x07: self.move_delay_timer_into_reg,            # Ft07 - LOAD Vt, DELAY
             0x0A: self.wait_for_keypress,                    # Ft0A - KEYD Vt
@@ -244,11 +245,17 @@ class Chip8CPU:
 
         # Skip if the key specified in the source register is pressed
         if operation == 0x9E:
-            self.pc += 2 if keys_pressed[KEY_MAPPINGS[key_to_check]] else 0
+            if keys_pressed[KEY_MAPPINGS[key_to_check]]:
+                self.pc += 2
+                if self.memory[self.pc - 2] == 0xF0 and self.memory[self.pc - 1] == 0x00:
+                    self.pc += 2
 
         # Skip if the key specified in the source register is not pressed
         if operation == 0xA1:
-            self.pc += 2 if not keys_pressed[KEY_MAPPINGS[key_to_check]] else 0
+            if not keys_pressed[KEY_MAPPINGS[key_to_check]]:
+                self.pc += 2
+                if self.memory[self.pc - 2] == 0xF0 and self.memory[self.pc - 1] == 0x00:
+                    self.pc += 2
 
     def misc_routines(self):
         """
@@ -396,7 +403,10 @@ class Chip8CPU:
         advancing it by 2 bytes.
         """
         x = (self.operand & 0x0F00) >> 8
-        self.pc += 2 if self.v[x] == (self.operand & 0x00FF) else 0
+        if self.v[x] == (self.operand & 0x00FF):
+            self.pc += 2
+            if self.memory[self.pc - 2] == 0xF0 and self.memory[self.pc - 1] == 0x00:
+                self.pc += 2
         self.last_op = f"SKE V{x:01X}, {self.operand & 0x00FF:02X}"
 
     def skip_if_reg_not_equal_val(self):
@@ -414,7 +424,10 @@ class Chip8CPU:
         """
         x = (self.operand & 0x0F00) >> 8
         self.last_op = f"SKNE V{x:X}, {self.operand & 0x00FF:02X} (comparing {self.v[x]:02X} to {self.operand & 0xFF:02X})"
-        self.pc += 2 if self.v[x] != (self.operand & 0x00FF) else 0
+        if self.v[x] != (self.operand & 0x00FF):
+            self.pc += 2
+            if self.memory[self.pc - 2] == 0xF0 and self.memory[self.pc - 1] == 0x00:
+                self.pc += 2
 
     def skip_if_reg_equal_reg(self):
         """
@@ -431,7 +444,10 @@ class Chip8CPU:
         """
         x = (self.operand & 0x0F00) >> 8
         y = (self.operand & 0x00F0) >> 4
-        self.pc += 2 if self.v[x] == self.v[y] else 0
+        if self.v[x] == self.v[y]:
+            self.pc += 2
+            if self.memory[self.pc - 2] == 0xF0 and self.memory[self.pc - 1] == 0x00:
+                self.pc += 2
         self.last_op = f"SKE V{x:01X}, V{y:01X}"
 
     def move_value_to_reg(self):
@@ -661,7 +677,10 @@ class Chip8CPU:
         """
         x = (self.operand & 0x0F00) >> 8
         y = (self.operand & 0x00F0) >> 4
-        self.pc += 2 if self.v[x] != self.v[y] else 0
+        if self.v[x] != self.v[y]:
+            self.pc += 2
+            if self.memory[self.pc - 2] == 0xF0 and self.memory[self.pc - 1] == 0x00:
+                self.pc += 2
         self.last_op = f"SKNE V{x:01X}, V{y:01X} (comparing {self.v[x]:02X} to {self.v[y]:02X})"
 
     def load_index_reg_with_value(self):
@@ -822,6 +841,17 @@ class Chip8CPU:
                 else:
                     self.v[0xF] += 1
         self.screen.update()
+
+    def index_load_long(self):
+        """
+        F000 - LOADLONG
+
+        Loads the index register with a 16-bit long value. Consumes the next two
+        bytes from memory and increments the PC by two bytes.
+        """
+        self.index = (self.memory[self.pc] << 8) + self.memory[self.pc+1]
+        self.pc += 2
+        self.last_op = f"LOADLONG {self.index:04X}"
 
     def set_bitplane(self):
         """

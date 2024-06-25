@@ -119,6 +119,14 @@ class TestChip8CPU(unittest.TestCase):
                     else:
                         self.assertEqual(self.cpu.pc, 0)
 
+    def test_skip_if_reg_equal_val_load_long_exception(self):
+        self.cpu.memory[0x0200] = 0xF0
+        self.cpu.memory[0x0201] = 0x00
+        self.cpu.v[1] = 1
+        self.cpu.operand = 0x3101
+        self.cpu.skip_if_reg_equal_val()
+        self.assertEqual(0x0204, self.cpu.pc)
+
     def test_skip_if_reg_not_equal_val(self):
         for register in range(0x10):
             for value in range(0, 0xFF, 0x10):
@@ -132,6 +140,14 @@ class TestChip8CPU(unittest.TestCase):
                         self.assertEqual(self.cpu.pc, 2)
                     else:
                         self.assertEqual(self.cpu.pc, 0)
+
+    def test_skip_if_reg_not_equal_val_load_long_exception(self):
+        self.cpu.memory[0x0200] = 0xF0
+        self.cpu.memory[0x0201] = 0x00
+        self.cpu.v[1] = 1
+        self.cpu.operand = 0x4102
+        self.cpu.skip_if_reg_not_equal_val()
+        self.assertEqual(0x0204, self.cpu.pc)
 
     def test_skip_if_reg_equal_reg(self):
         for reg_num in range(0x10):
@@ -154,6 +170,15 @@ class TestChip8CPU(unittest.TestCase):
                     self.assertEqual(self.cpu.pc, 2)
                 else:
                     self.assertEqual(self.cpu.pc, 0)
+
+    def test_skip_if_reg_equal_reg_load_long_exception(self):
+        self.cpu.memory[0x0200] = 0xF0
+        self.cpu.memory[0x0201] = 0x00
+        self.cpu.v[1] = 1
+        self.cpu.v[2] = 1
+        self.cpu.operand = 0x5120
+        self.cpu.skip_if_reg_equal_reg()
+        self.assertEqual(0x0204, self.cpu.pc)
 
     def test_move_value_to_reg(self):
         val = 0x23
@@ -409,6 +434,15 @@ class TestChip8CPU(unittest.TestCase):
                     self.assertEqual(self.cpu.pc, 2)
                 else:
                     self.assertEqual(self.cpu.pc, 0)
+
+    def test_skip_if_reg_not_equal_reg_load_long_exception(self):
+        self.cpu.memory[0x0200] = 0xF0
+        self.cpu.memory[0x0201] = 0x00
+        self.cpu.v[1] = 1
+        self.cpu.v[2] = 2
+        self.cpu.operand = 0x9120
+        self.cpu.skip_if_reg_not_equal_reg()
+        self.assertEqual(0x0204, self.cpu.pc)
 
     def test_load_index_reg_with_value(self):
         for value in range(0x10000):
@@ -679,6 +713,18 @@ class TestChip8CPU(unittest.TestCase):
             self.assertTrue(key_mock.asssert_called)
             self.assertEqual(2, self.cpu.pc)
 
+    def test_operation_9E_pc_skips_if_key_pressed_load_long_exception(self):
+        self.cpu.operand = 0x09E
+        self.cpu.v[0] = 1
+        result_table = [False] * 512
+        self.cpu.memory[0x0200] = 0xF0
+        self.cpu.memory[0x0201] = 0x00
+        result_table[pygame.K_1] = True
+        with mock.patch("pygame.key.get_pressed", return_value=result_table) as key_mock:
+            self.cpu.keyboard_routines()
+            self.assertTrue(key_mock.asssert_called)
+            self.assertEqual(0x0204, self.cpu.pc)
+
     def test_operation_9E_pc_does_not_skip_if_key_not_pressed(self):
         self.cpu.operand = 0x09E
         self.cpu.v[0] = 1
@@ -698,6 +744,17 @@ class TestChip8CPU(unittest.TestCase):
             self.cpu.keyboard_routines()
             self.assertTrue(key_mock.asssert_called)
             self.assertEqual(2, self.cpu.pc)
+
+    def test_operation_A1_pc_skips_if_key_not_pressed_load_long_exception(self):
+        self.cpu.operand = 0x0A1
+        self.cpu.v[0] = 1
+        result_table = [False] * 512
+        self.cpu.memory[0x0200] = 0xF0
+        self.cpu.memory[0x0201] = 0x00
+        with mock.patch("pygame.key.get_pressed", return_value=result_table) as key_mock:
+            self.cpu.keyboard_routines()
+            self.assertTrue(key_mock.asssert_called)
+            self.assertEqual(0x0204, self.cpu.pc)
 
     def test_operation_A1_pc_does_not_skip_if_key_pressed(self):
         self.cpu.operand = 0x0A1
@@ -749,10 +806,10 @@ class TestChip8CPU(unittest.TestCase):
             self.cpu.execute_logical_instruction()
 
     def test_misc_routines_raises_exception_on_unknown_op_codes(self):
-        self.cpu.operand = 0x0
+        self.cpu.operand = 0xF0FF
         with self.assertRaises(UnknownOpCodeException) as context:
             self.cpu.misc_routines()
-        self.assertEqual("Unknown op-code: 0000", str(context.exception))
+        self.assertEqual("Unknown op-code: F0FF", str(context.exception))
 
     def test_scroll_down_called(self):
         self.cpu.operand = 0x00C4
@@ -1005,6 +1062,24 @@ class TestChip8CPU(unittest.TestCase):
         self.assertEqual(10, self.cpu.v[1])
         self.assertEqual(9, self.cpu.v[2])
         self.assertEqual(8, self.cpu.v[3])
+
+    def test_load_long(self):
+        self.cpu.index = 0x5000
+        self.cpu.memory[0x0200] = 0x12
+        self.cpu.memory[0x0201] = 0x34
+        self.cpu.index_load_long()
+        self.assertEqual(0x1234, self.cpu.index)
+        self.assertEqual(0x0202, self.cpu.pc)
+
+    def test_load_long_integration(self):
+        self.cpu.index = 0x5000
+        self.cpu.memory[0x0200] = 0xF0
+        self.cpu.memory[0x0201] = 0x00
+        self.cpu.memory[0x0202] = 0x12
+        self.cpu.memory[0x0203] = 0x34
+        self.cpu.execute_instruction()
+        self.assertEqual(0x1234, self.cpu.index)
+        self.assertEqual(0x0204, self.cpu.pc)
 
 # M A I N #####################################################################
 
