@@ -91,8 +91,10 @@ class Chip8CPU:
         self.sp = STACK_POINTER_START
         self.index = 0
         self.rpl = [0] * NUM_REGISTERS
+
         self.pitch = 64
         self.playback_rate = 4000
+        self.audio_pattern_buffer = [0] * 16
 
         self.bitplane = 1
 
@@ -164,6 +166,7 @@ class Chip8CPU:
         self.misc_routine_lookup = {
             0x00: self.index_load_long,                      # F000 - LOADLONG
             0x01: self.set_bitplane,                         # Fn01 - BITPLANE n
+            0x02: self.load_audio_pattern_buffer,            # F002 - AUDIO
             0x07: self.move_delay_timer_into_reg,            # Ft07 - LOAD Vt, DELAY
             0x0A: self.wait_for_keypress,                    # Ft0A - KEYD Vt
             0x15: self.move_reg_into_delay_timer,            # Fs15 - LOAD DELAY, Vs
@@ -945,6 +948,17 @@ class Chip8CPU:
         self.bitplane = (self.operand & 0x0F00) >> 8
         self.last_op = f"BITPLANE {self.bitplane:01X}"
 
+    def load_audio_pattern_buffer(self):
+        """
+        F002 - AUDIO
+
+        Loads the 16-byte audio pattern buffer with 16 bytes from memory
+        pointed to by the index register.
+        """
+        for x in range(16):
+            self.audio_pattern_buffer[x] = self.memory[self.index + x]
+        self.last_op = f"AUDIO {self.index:04X}"
+
     def move_delay_timer_into_reg(self):
         """
         Fx07 - LOAD Vx, DELAY
@@ -1198,6 +1212,7 @@ class Chip8CPU:
         self.rpl = [0] * NUM_REGISTERS
         self.pitch = 64
         self.playback_rate = 4000
+        self.audio_pattern_buffer = [0] * 16
         self.bitplane = 1
 
     def load_rom(self, filename, offset=PROGRAM_COUNTER_START):
