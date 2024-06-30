@@ -31,8 +31,8 @@ class Chip8Screen:
             self,
             scale_factor,
             color_0="000000",
-            color_1="666666",
-            color_2="BBBBBB",
+            color_1="ff33cc",
+            color_2="33ccff",
             color_3="FFFFFF"
     ):
         """
@@ -67,10 +67,10 @@ class Chip8Screen:
             HWSURFACE | DOUBLEBUF,
             SCREEN_DEPTH)
         display.set_caption('CHIP8 Emulator')
-        self.clear_screen()
+        self.clear_screen(3)
         self.update()
 
-    def draw_pixel(self, x_pos, y_pos, turn_on):
+    def draw_pixel(self, x_pos, y_pos, turn_on, bitplane):
         """
         Turn a pixel on or off at the specified location on the screen. Note
         that the pixel will not automatically be drawn on the screen, you
@@ -81,29 +81,49 @@ class Chip8Screen:
         :param x_pos: the x coordinate to place the pixel
         :param y_pos: the y coordinate to place the pixel
         :param turn_on: whether to turn the pixel on or off
+        :param bitplane: the bitplane where the pixel is located
         """
+        if bitplane == 0:
+            return
+
+        other_bitplane = 2 if bitplane == 1 else 1
+        other_pixel_on = self.get_pixel(x_pos, y_pos, other_bitplane)
+
         mode_scale = 1 if self.mode == SCREEN_MODE_EXTENDED else 2
-        pixel_color = 1 if turn_on else 0
         x_base = (x_pos * mode_scale) * self.scale_factor
         y_base = (y_pos * mode_scale) * self.scale_factor
+
+        if turn_on and other_pixel_on:
+            pixel_color = 3
+        elif turn_on and not other_pixel_on:
+            pixel_color = bitplane
+        elif not turn_on and other_pixel_on:
+            pixel_color = other_bitplane
+        else:
+            pixel_color = 0
+
         draw.rect(self.surface,
                   self.pixel_colors[pixel_color],
                   (x_base, y_base, mode_scale * self.scale_factor, mode_scale * self.scale_factor))
 
-    def get_pixel(self, x_pos, y_pos):
+    def get_pixel(self, x_pos, y_pos, bitplane):
         """
         Returns whether the pixel is on (1) or off (0) at the specified
-        location.
+        location for the specified bitplane.
 
         :param x_pos: the x coordinate to check
         :param y_pos: the y coordinate to check
-        :return: true if the pixel is currently turned on
+        :param bitplane: the bitplane where the pixel is located
+        :return: True if the pixel is currently turned on, False otherwise
         """
+        if bitplane == 0:
+            return False
+
         mode_scale = 1 if self.mode == SCREEN_MODE_EXTENDED else 2
         x_scale = (x_pos * mode_scale) * self.scale_factor
         y_scale = (y_pos * mode_scale) * self.scale_factor
         pixel_color = self.surface.get_at((x_scale, y_scale))
-        return pixel_color == self.pixel_colors[1]
+        return pixel_color == self.pixel_colors[bitplane] or pixel_color == self.pixel_colors[3]
 
     def get_width(self):
         """
@@ -121,11 +141,24 @@ class Chip8Screen:
         """
         return 64 if self.mode == SCREEN_MODE_EXTENDED else 32
 
-    def clear_screen(self):
+    def clear_screen(self, bitplane):
         """
-        Turns off all the pixels on the screen (writes color 0 to all pixels).
+        Turns off all the pixels on the specified bitplane.
+
+        :param bitplane: the bitplane to clear
         """
-        self.surface.fill(self.pixel_colors[0])
+        if bitplane == 0:
+            return
+
+        if bitplane == 3:
+            self.surface.fill(self.pixel_colors[0])
+            return
+
+        max_x = self.get_width()
+        max_y = self.get_height()
+        for x in range(max_x):
+            for y in range(max_y):
+                self.draw_pixel(x, y, False, bitplane)
 
     @staticmethod
     def update():
@@ -149,37 +182,133 @@ class Chip8Screen:
         """
         self.mode = SCREEN_MODE_NORMAL
 
-    def scroll_down(self, num_lines):
+    def scroll_down(self, num_lines, bitplane):
         """
         Scroll the screen down by num_lines.
 
         :param num_lines: the number of lines to scroll down
+        :param bitplane: the bitplane to scroll
         """
+        if bitplane == 0:
+            return
+
         mode_scale = 1 if self.mode == SCREEN_MODE_EXTENDED else 2
         actual_lines = num_lines * mode_scale * self.scale_factor
-        self.surface.scroll(0, actual_lines)
-        self.surface.fill(self.pixel_colors[0], (0, 0, self.width * mode_scale * self.scale_factor, actual_lines))
-        self.update()
+        if bitplane == 3:
+            self.surface.scroll(0, actual_lines)
+            self.surface.fill(self.pixel_colors[0], (0, 0, self.width * mode_scale * self.scale_factor, actual_lines))
+            self.update()
+            return
 
-    def scroll_left(self):
+        max_x = self.get_width()
+        max_y = self.get_height()
+
+        # Blank out any pixels in the bottom n lines that we will copy to
+        for x in range(max_x):
+            for y in range(max_y - num_lines, max_y):
+                self.draw_pixel(x, y, False, bitplane)
+
+        # Start copying pixels from the top to the bottom and shift by 4 pixels
+        for x in range(max_x):
+            for y in range(max_y - num_lines - 1, -1, -1):
+                current_pixel = self.get_pixel(x, y, bitplane)
+                self.draw_pixel(x, y, False, bitplane)
+                self.draw_pixel(x, y + num_lines, current_pixel, bitplane)
+
+        # Blank out any pixels in the first num_lines horizontal lines
+        for x in range(max_x):
+            for y in range(num_lines):
+                self.draw_pixel(x, y, False, bitplane)
+
+    def scroll_left(self, bitplane):
         """
         Scroll the screen left 4 pixels.
+
+        :param bitplane: the bitplane to scroll
         """
-        mode_scale = 1 if self.mode == SCREEN_MODE_EXTENDED else 2
-        actual_lines = 4 * mode_scale * self.scale_factor
-        left = (self.width * mode_scale * self.scale_factor) - actual_lines
-        self.surface.scroll(-actual_lines, 0)
-        self.surface.fill(self.pixel_colors[0], (left, 0, actual_lines, self.height * mode_scale * self.scale_factor))
+        if bitplane == 0:
+            return
+        
+        other_bitplane = 1 if bitplane == 2 else 2
+        max_x = self.get_width()
+        max_y = self.get_height()
+
+        if bitplane == 3:
+            # Blank out any pixels in the left 4 vertical lines that we will copy to
+            for x in range(4):
+                for y in range(max_y):
+                    self.draw_pixel(x, y, False, 1)
+                    self.draw_pixel(x, y, False, 2)
+
+            # Start copying pixels from the right to the left and shift by 4 pixels
+            for x in range(4, max_x):
+                for y in range(max_y):
+                    current_pixel = self.get_pixel(x, y, 1)
+                    self.draw_pixel(x, y, False, 1)
+                    self.draw_pixel(x - 4, y, current_pixel, 1)
+                    current_pixel = self.get_pixel(x, y, 2)
+                    self.draw_pixel(x, y, False, 2)
+                    self.draw_pixel(x - 4, y, current_pixel, 2)
+
+            # Blank out any pixels in the right 4 vertical lines
+            for x in range(max_x - 4, max_x):
+                for y in range(max_y):
+                    self.draw_pixel(x, y, False, 1)
+                    self.draw_pixel(x, y, False, 2)
+        else:
+            for x in range(4):
+                for y in range(max_y):
+                    self.draw_pixel(x, y, False, bitplane)
+
+            # Start copying pixels from the right to the left and shift by 4 pixels
+            for x in range(4, max_x):
+                for y in range(max_y):
+                    current_pixel = self.get_pixel(x, y, bitplane)
+                    self.draw_pixel(x, y, False, bitplane)
+                    self.draw_pixel(x - 4, y, current_pixel, bitplane)
+
+            # Blank out any pixels in the right 4 vertical lines
+            for x in range(max_x - 4, max_x):
+                for y in range(max_y):
+                    self.draw_pixel(x, y, False, bitplane)
         self.update()
 
-    def scroll_right(self):
+    def scroll_right(self, bitplane):
         """
         Scroll the screen right 4 pixels.
+
+        :param bitplane: the bitplane to scroll
         """
+        if bitplane == 0:
+            return
+
         mode_scale = 1 if self.mode == SCREEN_MODE_EXTENDED else 2
         actual_lines = 4 * mode_scale * self.scale_factor
-        self.surface.scroll(actual_lines, 0)
-        self.surface.fill(self.pixel_colors[0], (0, 0, actual_lines, self.height * mode_scale * self.scale_factor))
-        self.update()
+
+        if bitplane == 3:
+            self.surface.scroll(actual_lines, 0)
+            self.surface.fill(self.pixel_colors[0], (0, 0, actual_lines, self.height * mode_scale * self.scale_factor))
+            self.update()
+            return
+
+        max_x = self.get_width()
+        max_y = self.get_height()
+
+        # Blank out any pixels in the right vertical lines that we will copy to
+        for x in range(max_x - 4, max_x):
+            for y in range(max_y):
+                self.draw_pixel(x, y, False, bitplane)
+
+        # Start copying pixels from the left to the right and shift by 4 pixels
+        for x in range(max_x - 4 - 1, -1, -1):
+            for y in range(max_y):
+                current_pixel = self.get_pixel(x, y, bitplane)
+                self.draw_pixel(x, y, False, bitplane)
+                self.draw_pixel(x + 4, y, current_pixel, bitplane)
+
+        # Blank out any pixels in the left 4 vertical lines
+        for x in range(4):
+            for y in range(max_y):
+                self.draw_pixel(x, y, False, bitplane)
 
 # E N D   O F   F I L E ########################################################
