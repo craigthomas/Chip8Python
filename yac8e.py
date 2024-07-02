@@ -69,12 +69,12 @@ def parse_arguments():
         dest="color_0", default="000000"
     )
     parser.add_argument(
-        "--color_1", help="the hex color to use for bitplane 1 (default=666666)",
-        dest="color_1", default="666666"
+        "--color_1", help="the hex color to use for bitplane 1 (default=ff33cc)",
+        dest="color_1", default="ff33cc"
     )
     parser.add_argument(
-        "--color_2", help="the hex color to use for bitplane 2 (default=BBBBBB)",
-        dest="color_2", default="BBBBBB"
+        "--color_2", help="the hex color to use for bitplane 2 (default=33ccff)",
+        dest="color_2", default="33ccff"
     )
     parser.add_argument(
         "--color_3", help="the hex color to use for bitplane overlaps (default=FFFFFF)",

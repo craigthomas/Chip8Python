@@ -114,7 +114,7 @@ class Chip8CPU:
             0x2: self.jump_to_subroutine,            # 2nnn - CALL nnn
             0x3: self.skip_if_reg_equal_val,         # 3snn - SKE  Vs, nn
             0x4: self.skip_if_reg_not_equal_val,     # 4snn - SKNE Vs, nn
-            0x5: self.skip_if_reg_equal_reg,         # 5st0 - SKE  Vs, Vt
+            0x5: self.save_skip_routines,            # see subfunctions below
             0x6: self.move_value_to_reg,             # 6snn - LOAD Vs, nn
             0x7: self.add_value_to_reg,              # 7snn - ADD  Vs, nn
             0x8: self.execute_logical_instruction,   # see subfunctions below
@@ -125,6 +125,12 @@ class Chip8CPU:
             0xD: self.draw_sprite,                   # Dstn - DRAW Vs, Vy, n
             0xE: self.keyboard_routines,             # see subfunctions below
             0xF: self.misc_routines,                 # see subfunctions below
+        }
+
+        self.save_skip_lookup = {
+            0x0: self.skip_if_reg_equal_reg,         # 5xy0 - SKE  Vx, Vy
+            0x2: self.store_subset_regs_in_memory,   # 5xy2 - STORSUB x, y
+            0x3: self.read_subset_regs_in_memory,    # 5xy3 - LOADSUB x, y
         }
 
         self.clear_routines = {
@@ -257,21 +263,25 @@ class Chip8CPU:
                 if self.memory[self.pc - 2] == 0xF0 and self.memory[self.pc - 1] == 0x00:
                     self.pc += 2
 
+    def save_skip_routines(self):
+        """
+        Will execute either a register save or skip routine.
+        """
+        operation = self.operand & 0x000F
+        try:
+            self.save_skip_lookup[operation]()
+        except KeyError:
+            raise UnknownOpCodeException(self.operand)
+
     def misc_routines(self):
         """
         Will execute one of the routines specified in misc_routines.
         """
         operation = self.operand & 0x00FF
-        sub_operation = self.operand & 0x000F
-        if sub_operation == 0x2:
-            self.store_subset_regs_in_memory()
-        elif sub_operation == 0x3:
-            self.read_subset_regs_in_memory()
-        else:
-            try:
-                self.misc_routine_lookup[operation]()
-            except KeyError:
-                raise UnknownOpCodeException(self.operand)
+        try:
+            self.misc_routine_lookup[operation]()
+        except KeyError:
+            raise UnknownOpCodeException(self.operand)
 
     def clear_return(self):
         """
@@ -282,7 +292,7 @@ class Chip8CPU:
         sub_operation = operation & 0x00F0
         if sub_operation == 0x00C0:
             num_lines = self.operand & 0x000F
-            self.screen.scroll_down(num_lines)
+            self.screen.scroll_down(num_lines, self.bitplane)
             self.last_op = f"Scroll Down {num_lines:01X}"
         else:
             try:
@@ -296,7 +306,7 @@ class Chip8CPU:
 
         Clears the screen
         """
-        self.screen.clear_screen()
+        self.screen.clear_screen(self.bitplane)
         self.last_op = "CLS"
 
     def return_from_subroutine(self):
@@ -318,7 +328,7 @@ class Chip8CPU:
 
         Scrolls the screen right by 4 pixels.
         """
-        self.screen.scroll_right()
+        self.screen.scroll_right(self.bitplane)
         self.last_op = "Scroll Right"
 
     def scroll_left(self):
@@ -327,7 +337,7 @@ class Chip8CPU:
 
         Scrolls the screen left by 4 pixels.
         """
-        self.screen.scroll_left()
+        self.screen.scroll_left(self.bitplane)
         self.last_op = "Scroll Left"
 
     def exit(self):
@@ -449,6 +459,58 @@ class Chip8CPU:
             if self.memory[self.pc - 2] == 0xF0 and self.memory[self.pc - 1] == 0x00:
                 self.pc += 2
         self.last_op = f"SKE V{x:01X}, V{y:01X}"
+
+    def store_subset_regs_in_memory(self):
+        """
+        5xy2 - STORSUB [I], Vx, Vy
+
+        Store a subset of registers from x to y in memory starting at index.
+        The x and y calculation is as follows:
+
+           Bits:  15-12     11-8      7-4       3-0
+                    F         x        y         2
+
+        If x is larger than y, then they will be stored in reverse order.
+        """
+        x = (self.operand & 0x0F00) >> 8
+        y = (self.operand & 0x00F0) >> 4
+        pointer = 0
+        if y >= x:
+            for z in range(x, y+1):
+                self.memory[self.index + pointer] = self.v[z]
+                pointer += 1
+        else:
+            for z in range(x, y-1, -1):
+                self.memory[self.index + pointer] = self.v[z]
+                pointer += 1
+
+        self.last_op = f"STORSUB [I], {x:01X}, {y:01X}"
+
+    def read_subset_regs_in_memory(self):
+        """
+        5xy3 - LOADSUB [I], Vx, Vy
+
+        Load a subset of registers from x to y in memory starting at index.
+        The x and y calculation is as follows:
+
+           Bits:  15-12     11-8      7-4       3-0
+                    F         x        y         2
+
+        If x is larger than y, then they will be loaded in reverse order.
+        """
+        x = (self.operand & 0x0F00) >> 8
+        y = (self.operand & 0x00F0) >> 4
+        pointer = 0
+        if y >= x:
+            for z in range(x, y+1):
+                self.v[z] = self.memory[self.index + pointer]
+                pointer += 1
+        else:
+            for z in range(x, y-1, -1):
+                self.v[z] = self.memory[self.index + pointer]
+                pointer += 1
+
+        self.last_op = f"LOADSUB [I], {x:01X}, {y:01X}"
 
     def move_value_to_reg(self):
         """
@@ -781,19 +843,28 @@ class Chip8CPU:
         self.v[0xF] = 0
 
         if num_bytes == 0:
-            self.draw_extended(x_pos, y_pos)
+            if self.bitplane == 3:
+                self.draw_extended(x_pos, y_pos, 1)
+                self.draw_extended(x_pos, y_pos, 2)
+            else:
+                self.draw_extended(x_pos, y_pos, self.bitplane)
             self.last_op = f"DRAWEX"
         else:
-            self.draw_normal(x_pos, y_pos, num_bytes)
+            if self.bitplane == 3:
+                self.draw_normal(x_pos, y_pos, num_bytes, 1)
+                self.draw_normal(x_pos, y_pos, num_bytes, 2)
+            else:
+                self.draw_normal(x_pos, y_pos, num_bytes, self.bitplane)
             self.last_op = f"DRAW V{x_source:01X}, V{y_source:01X}"
 
-    def draw_normal(self, x_pos, y_pos, num_bytes):
+    def draw_normal(self, x_pos, y_pos, num_bytes, bitplane):
         """
         Draws a sprite on the screen while in NORMAL mode.
         
         :param x_pos: the X position of the sprite
         :param y_pos: the Y position of the sprite
         :param num_bytes: the number of bytes to draw
+        :param bitplane: the bitplane to draw to
         """
         for y_index in range(num_bytes):
             color_byte = self.memory[self.index + y_index]
@@ -806,13 +877,13 @@ class Chip8CPU:
                     if not self.clip_quirks or (self.clip_quirks and x_coord < self.screen.get_width()):
                         x_coord = x_coord % self.screen.get_width()
                         turned_on = (color_byte & mask) > 0
-                        current_on = self.screen.get_pixel(x_coord, y_coord)
+                        current_on = self.screen.get_pixel(x_coord, y_coord, bitplane)
                         self.v[0xF] |= 1 if turned_on and current_on else 0
-                        self.screen.draw_pixel(x_coord, y_coord, turned_on ^ current_on)
+                        self.screen.draw_pixel(x_coord, y_coord, turned_on ^ current_on, bitplane)
                         mask = mask >> 1
         self.screen.update()
 
-    def draw_extended(self, x_pos, y_pos):
+    def draw_extended(self, x_pos, y_pos, bitplane):
         """
         Draws a sprite on the screen while in EXTENDED mode. Sprites in this
         mode are assumed to be 16x16 pixels. This means that two bytes will
@@ -821,6 +892,7 @@ class Chip8CPU:
 
         :param x_pos: the X position of the sprite
         :param y_pos: the Y position of the sprite
+        :param bitplane: the bitplane to draw to
         """
         for y_index in range(16):
             for x_byte in range(2):
@@ -834,9 +906,9 @@ class Chip8CPU:
                         if not self.clip_quirks or (self.clip_quirks and x_coord < self.screen.get_width()):
                             x_coord = x_coord % self.screen.get_width()
                             turned_on = (color_byte & mask) > 0
-                            current_on = self.screen.get_pixel(x_coord, y_coord)
+                            current_on = self.screen.get_pixel(x_coord, y_coord, bitplane)
                             self.v[0xF] += 1 if turned_on and current_on else 0
-                            self.screen.draw_pixel(x_coord, y_coord, turned_on ^ current_on)
+                            self.screen.draw_pixel(x_coord, y_coord, turned_on ^ current_on, bitplane)
                             mask = mask >> 1
                 else:
                     self.v[0xF] += 1
@@ -872,58 +944,6 @@ class Chip8CPU:
         """
         self.bitplane = (self.operand & 0x0F00) >> 8
         self.last_op = f"BITPLANE {self.bitplane:01X}"
-
-    def store_subset_regs_in_memory(self):
-        """
-        Fxy2 - STORSUB [I], Vx, Vy
-
-        Store a subset of registers from x to y in memory starting at index.
-        The x and y calculation is as follows:
-
-           Bits:  15-12     11-8      7-4       3-0
-                    F         x        y         2
-
-        If x is larger than y, then they will be stored in reverse order.
-        """
-        x = (self.operand & 0x0F00) >> 8
-        y = (self.operand & 0x00F0) >> 4
-        pointer = 0
-        if y >= x:
-            for z in range(x, y+1):
-                self.memory[self.index + pointer] = self.v[z]
-                pointer += 1
-        else:
-            for z in range(x, y-1, -1):
-                self.memory[self.index + pointer] = self.v[z]
-                pointer += 1
-
-        self.last_op = f"STORSUB [I], {x:01X}, {y:01X}"
-
-    def read_subset_regs_in_memory(self):
-        """
-        Fxy3 - LOADSUB [I], Vx, Vy
-
-        Load a subset of registers from x to y in memory starting at index.
-        The x and y calculation is as follows:
-
-           Bits:  15-12     11-8      7-4       3-0
-                    F         x        y         2
-
-        If x is larger than y, then they will be loaded in reverse order.
-        """
-        x = (self.operand & 0x0F00) >> 8
-        y = (self.operand & 0x00F0) >> 4
-        pointer = 0
-        if y >= x:
-            for z in range(x, y+1):
-                self.v[z] = self.memory[self.index + pointer]
-                pointer += 1
-        else:
-            for z in range(x, y-1, -1):
-                self.v[z] = self.memory[self.index + pointer]
-                pointer += 1
-
-        self.last_op = f"LOADSUB [I], {x:01X}, {y:01X}"
 
     def move_delay_timer_into_reg(self):
         """

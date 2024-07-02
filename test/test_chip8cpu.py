@@ -689,7 +689,7 @@ class TestChip8CPU(unittest.TestCase):
     def test_clear_screen(self):
         self.cpu.operand = 0xE0
         self.cpu.clear_return()
-        self.screen.clear_screen.assert_called_with()
+        self.screen.clear_screen.assert_called_with(1)
 
     def test_clear_return_from_subroutine(self):
         self.cpu.operand = 0xEE
@@ -811,10 +811,16 @@ class TestChip8CPU(unittest.TestCase):
             self.cpu.misc_routines()
         self.assertEqual("Unknown op-code: F0FF", str(context.exception))
 
+    def test_save_skip_routines_raises_exception_on_unknown_op_codes(self):
+        self.cpu.operand = 0x50FF
+        with self.assertRaises(UnknownOpCodeException) as context:
+            self.cpu.misc_routines()
+        self.assertEqual("Unknown op-code: 50FF", str(context.exception))
+
     def test_scroll_down_called(self):
         self.cpu.operand = 0x00C4
         self.cpu.clear_return()
-        self.screen.scroll_down.assert_called_with(4)
+        self.screen.scroll_down.assert_called_with(4, 1)
 
     def test_scroll_right_called(self):
         self.cpu.operand = 0x00FB
@@ -859,17 +865,17 @@ class TestChip8CPU(unittest.TestCase):
         screen_mock.width = 64
         self.cpu = Chip8CPU(screen_mock)
         self.cpu.memory[0] = 0xAA
-        self.cpu.draw_normal(0, 0, 1)
+        self.cpu.draw_normal(0, 0, 1, 1)
         with patch('chip8.screen.Chip8Screen.draw_pixel'):
             screen_mock.draw_pixel.assert_has_calls([
-                call(0, 0, 1),
-                call(1, 0, 0),
-                call(2, 0, 1),
-                call(3, 0, 0),
-                call(4, 0, 1),
-                call(5, 0, 0),
-                call(6, 0, 1),
-                call(7, 0, 0)
+                call(0, 0, 1, 1),
+                call(1, 0, 0, 1),
+                call(2, 0, 1, 1),
+                call(3, 0, 0, 1),
+                call(4, 0, 1, 1),
+                call(5, 0, 0, 1),
+                call(6, 0, 1, 1),
+                call(7, 0, 0, 1)
             ])
 
     def test_draw_sprite_turns_off_pixels(self):
@@ -880,26 +886,26 @@ class TestChip8CPU(unittest.TestCase):
         screen_mock.width = 64
         self.cpu = Chip8CPU(screen_mock)
         self.cpu.memory[0] = 0xAA
-        self.cpu.draw_normal(0, 0, 1)
-        self.cpu.draw_normal(0, 0, 1)
+        self.cpu.draw_normal(0, 0, 1, 1)
+        self.cpu.draw_normal(0, 0, 1, 1)
         with patch('chip8.screen.Chip8Screen.draw_pixel'):
             screen_mock.draw_pixel.assert_has_calls([
-                call(0, 0, 1),
-                call(1, 0, 0),
-                call(2, 0, 1),
-                call(3, 0, 0),
-                call(4, 0, 1),
-                call(5, 0, 0),
-                call(6, 0, 1),
-                call(7, 0, 0),
-                call(0, 0, 0),
-                call(1, 0, 0),
-                call(2, 0, 0),
-                call(3, 0, 0),
-                call(4, 0, 0),
-                call(5, 0, 0),
-                call(6, 0, 0),
-                call(7, 0, 0)
+                call(0, 0, 1, 1),
+                call(1, 0, 0, 1),
+                call(2, 0, 1, 1),
+                call(3, 0, 0, 1),
+                call(4, 0, 1, 1),
+                call(5, 0, 0, 1),
+                call(6, 0, 1, 1),
+                call(7, 0, 0, 1),
+                call(0, 0, 0, 1),
+                call(1, 0, 0, 1),
+                call(2, 0, 0, 1),
+                call(3, 0, 0, 1),
+                call(4, 0, 0, 1),
+                call(5, 0, 0, 1),
+                call(6, 0, 0, 1),
+                call(7, 0, 0, 1)
             ])
 
     def test_draw_sprite_does_not_turn_off_pixels(self):
@@ -910,27 +916,27 @@ class TestChip8CPU(unittest.TestCase):
         screen_mock.width = 64
         self.cpu = Chip8CPU(screen_mock)
         self.cpu.memory[0] = 0xAA
-        self.cpu.draw_normal(0, 0, 1)
+        self.cpu.draw_normal(0, 0, 1, 1)
         self.cpu.memory[0] = 0x55
-        self.cpu.draw_normal(0, 0, 1)
+        self.cpu.draw_normal(0, 0, 1, 1)
         with patch('chip8.screen.Chip8Screen.draw_pixel'):
             screen_mock.draw_pixel.assert_has_calls([
-                call(0, 0, 1),
-                call(1, 0, 0),
-                call(2, 0, 1),
-                call(3, 0, 0),
-                call(4, 0, 1),
-                call(5, 0, 0),
-                call(6, 0, 1),
-                call(7, 0, 0),
-                call(0, 0, 1),
-                call(1, 0, 1),
-                call(2, 0, 1),
-                call(3, 0, 1),
-                call(4, 0, 1),
-                call(5, 0, 1),
-                call(6, 0, 1),
-                call(7, 0, 1)
+                call(0, 0, 1, 1),
+                call(1, 0, 0, 1),
+                call(2, 0, 1, 1),
+                call(3, 0, 0, 1),
+                call(4, 0, 1, 1),
+                call(5, 0, 0, 1),
+                call(6, 0, 1, 1),
+                call(7, 0, 0, 1),
+                call(0, 0, 1, 1),
+                call(1, 0, 1, 1),
+                call(2, 0, 1, 1),
+                call(3, 0, 1, 1),
+                call(4, 0, 1, 1),
+                call(5, 0, 1, 1),
+                call(6, 0, 1, 1),
+                call(7, 0, 1, 1)
             ])
 
     def test_load_index_with_sprite(self):
@@ -975,7 +981,7 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.v[1] = 5
         self.cpu.v[2] = 6
         self.cpu.index = 0x5000
-        self.cpu.operand = 0xF122
+        self.cpu.operand = 0x5122
         self.cpu.store_subset_regs_in_memory()
         self.assertEqual(5, self.cpu.memory[0x5000])
         self.assertEqual(6, self.cpu.memory[0x5001])
@@ -984,7 +990,7 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.v[1] = 5
         self.cpu.v[2] = 6
         self.cpu.index = 0x5000
-        self.cpu.operand = 0xF112
+        self.cpu.operand = 0x5112
         self.cpu.store_subset_regs_in_memory()
         self.assertEqual(5, self.cpu.memory[0x5000])
         self.assertEqual(0, self.cpu.memory[0x5001])
@@ -994,7 +1000,7 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.v[2] = 6
         self.cpu.v[3] = 7
         self.cpu.index = 0x5000
-        self.cpu.operand = 0xF312
+        self.cpu.operand = 0x5312
         self.cpu.store_subset_regs_in_memory()
         self.assertEqual(7, self.cpu.memory[0x5000])
         self.assertEqual(6, self.cpu.memory[0x5001])
@@ -1005,7 +1011,7 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.v[2] = 6
         self.cpu.v[3] = 7
         self.cpu.index = 0x5000
-        self.cpu.memory[0x0200] = 0xF3
+        self.cpu.memory[0x0200] = 0x53
         self.cpu.memory[0x0201] = 0x12
         self.cpu.execute_instruction()
         self.assertEqual(7, self.cpu.memory[0x5000])
@@ -1016,7 +1022,7 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.v[1] = 5
         self.cpu.v[2] = 6
         self.cpu.index = 0x5000
-        self.cpu.operand = 0xF123
+        self.cpu.operand = 0x5123
         self.cpu.memory[0x5000] = 7
         self.cpu.memory[0x5001] = 8
         self.cpu.read_subset_regs_in_memory()
@@ -1027,7 +1033,7 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.v[1] = 5
         self.cpu.v[2] = 6
         self.cpu.index = 0x5000
-        self.cpu.operand = 0xF113
+        self.cpu.operand = 0x5113
         self.cpu.memory[0x5000] = 7
         self.cpu.memory[0x5001] = 8
         self.cpu.read_subset_regs_in_memory()
@@ -1039,7 +1045,7 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.v[2] = 6
         self.cpu.v[3] = 7
         self.cpu.index = 0x5000
-        self.cpu.operand = 0xF313
+        self.cpu.operand = 0x5313
         self.cpu.memory[0x5000] = 8
         self.cpu.memory[0x5001] = 9
         self.cpu.memory[0x5002] = 10
@@ -1053,7 +1059,7 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.v[2] = 6
         self.cpu.v[3] = 7
         self.cpu.index = 0x5000
-        self.cpu.memory[0x0200] = 0xF3
+        self.cpu.memory[0x0200] = 0x53
         self.cpu.memory[0x0201] = 0x13
         self.cpu.memory[0x5000] = 8
         self.cpu.memory[0x5001] = 9

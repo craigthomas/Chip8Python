@@ -314,8 +314,8 @@ Color values are specified by using HTML hex values such as `AABBCC` without the
 leading `#`. There are currently 4 color values that can be set:
 
 * `--color_0` specifies the background color. This defaults to `000000`.
-* `--color_1` specifies bitplane 1 color. This defaults to `666666`.
-* `--color_2` specifies bitplane 2 color. This defaults to `BBBBBB`.
+* `--color_1` specifies bitplane 1 color. This defaults to `FF33CC`.
+* `--color_2` specifies bitplane 2 color. This defaults to `33CCFF`.
 * `--color_3` specifies bitplane 1 and 2 overlap color. This defaults to `FFFFFF`.
 
 For Chip8 and SuperChip 8 programs, only the background color `color_0` (for pixels
