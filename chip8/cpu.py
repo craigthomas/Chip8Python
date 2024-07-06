@@ -6,12 +6,13 @@ A Chip 8 CPU - see the README file for more information.
 """
 # I M P O R T S ###############################################################
 
+import numpy as np
+import pygame.sndarray
+
 from pygame import key
 from random import randint
 
-from chip8.config import (
-    STACK_POINTER_START, KEY_MAPPINGS, PROGRAM_COUNTER_START
-)
+from chip8.config import STACK_POINTER_START, KEY_MAPPINGS, PROGRAM_COUNTER_START
 
 # C O N S T A N T S ###########################################################
 
@@ -27,6 +28,21 @@ MEM_SIZE = {
     "4K": 4096,
     "64K": 65536,
 }
+
+# The minimum number of audio samples we want to generate. The minimum amount
+# of time an audio clip can be played is 1/60th of a second (the frequency
+# that the sound timer is decremented). Since we initialize the pygame
+# audio mixer to require 48000 samples per second, this means each 1/60th
+# of a second requires 800 samples. The audio pattern buffer is only
+# 128 bits long, so we will need to repeat it to fill at least 1/60th of a
+# second with audio (resampled at the correct frequency). To be safe,
+# we'll construct a buffer of at least 4/60ths of a second of
+# audio. We can be bigger than the minimum number of samples below, but
+# we don't want less than that.
+MIN_AUDIO_SAMPLES = 3200
+
+# The audio playback rate to use for Pygame mixer initialization
+PYGAME_AUDIO_PLAYBACK_RATE = 48000
 
 # C L A S S E S ###############################################################
 
@@ -95,6 +111,8 @@ class Chip8CPU:
         self.pitch = 64
         self.playback_rate = 4000
         self.audio_pattern_buffer = [0] * 16
+        self.sound_playing = False
+        self.sound_waveform = None
 
         self.bitplane = 1
 
@@ -187,6 +205,7 @@ class Chip8CPU:
         self.memory = bytearray(MEM_SIZE[mem_size])
         self.reset()
         self.running = True
+        pygame.mixer.init(frequency=PYGAME_AUDIO_PLAYBACK_RATE, size=8, channels=1)
 
     def __str__(self):
         val = f"PC:{self.last_pc:04X} OP:{self.operand:04X} "
@@ -957,6 +976,7 @@ class Chip8CPU:
         """
         for x in range(16):
             self.audio_pattern_buffer[x] = self.memory[self.index + x]
+        self.calculate_audio_waveform()
         self.last_op = f"AUDIO {self.index:04X}"
 
     def move_delay_timer_into_reg(self):
@@ -1213,6 +1233,8 @@ class Chip8CPU:
         self.pitch = 64
         self.playback_rate = 4000
         self.audio_pattern_buffer = [0] * 16
+        self.sound_playing = False
+        self.sound_waveform = None
         self.bitplane = 1
 
     def load_rom(self, filename, offset=PROGRAM_COUNTER_START):
@@ -1236,6 +1258,51 @@ class Chip8CPU:
         """
         self.delay -= 1 if self.delay > 0 else 0
         self.sound -= 1 if self.delay > 0 else 0
+        if self.sound > 0 and not self.sound_playing:
+            if self.sound_waveform:
+                self.sound_waveform.play(loops=-1)
+            self.sound_playing = True
 
+        if self.sound == 0 and self.sound_playing:
+            if self.sound_waveform:
+                self.sound_waveform.stop()
+            self.sound_playing = False
+
+    def calculate_audio_waveform(self):
+        """
+        Based on a playback rate specified by the XO Chip pitch, generate
+        an audio waveform from the 16-byte audio_pattern_buffer. It converts
+        the 16-bytes pattern into 128 separate bits. The bits are then used to fill
+        a sample buffer. The sample buffer is filled by resampling the 128-bit
+        pattern at the specified frequency. The sample buffer is then repeated
+        until it is at least MIN_AUDIO_SAMPLES long. Playback (if currently
+        happening) is stopped, the new waveform is loaded, and then playback
+        is starts again (if the emulator had previously been playing a sound).
+        """
+        # Convert the 16-byte value into an array of 128-bit samples
+        data = [int(bit) * 255 for bit in ''.join(f"{audio_byte:08b}" for audio_byte in self.audio_pattern_buffer)]
+        step = self.playback_rate / PYGAME_AUDIO_PLAYBACK_RATE
+        buffer = []
+
+        # Generate the initial re-sampled buffer
+        position = 0.0
+        while position < 128:
+            buffer.append(data[int(position)])
+            position += step
+
+        # Lengthen the buffer until it is at least MIN_AUDIO_SAMPLES long
+        while len(buffer) < MIN_AUDIO_SAMPLES:
+            buffer += buffer
+
+        # Stop playing any waveform if it is currently playing
+        if self.sound_playing and self.sound_waveform:
+            self.sound_waveform.stop()
+
+        # Generate a new waveform from the sample buffer
+        self.sound_waveform = pygame.mixer.Sound(np.array(buffer).astype(np.uint8))
+
+        # Start playing the sound again if we should be playing one
+        if self.sound_playing:
+            self.sound_waveform.play(loops=-1)
 
 # E N D   O F   F I L E ########################################################
