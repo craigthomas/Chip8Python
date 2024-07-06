@@ -1,5 +1,5 @@
-pygame==2.5.2
+pygame
 mock
 nose
 coverage
-numpy==2.0.0
+numpy
