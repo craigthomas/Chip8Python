@@ -2,3 +2,4 @@ pygame
 mock
 nose
 coverage
+numpy

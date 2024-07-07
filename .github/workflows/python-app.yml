@@ -5,6 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DISPLAY: :0
+      SDL_AUDIODRIVER: "disk"
     steps:
     - name: Checkout
       uses: actions/checkout@v3
