@@ -1364,6 +1364,28 @@ class TestChip8CPU(unittest.TestCase):
         ]
         self.assertEqual(expected, [int(x) for x in self.cpu.sound_waveform.get_raw()])
 
+    def test_waveform_played_when_sound_delay_not_zero(self):
+        self.cpu.sound_waveform = mock.MagicMock()
+        self.cpu.sound = 40
+        self.cpu.decrement_timers()
+        self.cpu.sound_waveform.play.assert_called_with(loops=-1)
+        self.assertTrue(self.cpu.sound_playing)
+
+    def test_waveform_stopped_when_sound_delay_zero(self):
+        self.cpu.sound_waveform = mock.MagicMock()
+        self.cpu.sound = 0
+        self.cpu.sound_playing = True
+        self.cpu.decrement_timers()
+        self.cpu.sound_waveform.stop.assert_called_with()
+        self.assertFalse(self.cpu.sound_playing)
+
+    def test_calculate_audio_waveform_stops_sound_if_playing(self):
+        self.cpu.sound_waveform = mock.MagicMock()
+        the_mock = self.cpu.sound_waveform
+        self.cpu.sound_playing = True
+        self.cpu.calculate_audio_waveform()
+        the_mock.stop.assert_called_with()
+
 # M A I N #####################################################################
 
 

@@ -7,9 +7,10 @@ A Chip 8 CPU - see the README file for more information.
 # I M P O R T S ###############################################################
 
 import numpy as np
-import pygame.sndarray
 
 from pygame import key
+from pygame import mixer
+from pygame.mixer import Sound
 from random import randint
 
 from chip8.config import STACK_POINTER_START, KEY_MAPPINGS, PROGRAM_COUNTER_START
@@ -205,7 +206,7 @@ class Chip8CPU:
         self.memory = bytearray(MEM_SIZE[mem_size])
         self.reset()
         self.running = True
-        pygame.mixer.init(frequency=PYGAME_AUDIO_PLAYBACK_RATE, size=8, channels=1)
+        mixer.init(frequency=PYGAME_AUDIO_PLAYBACK_RATE, size=8, channels=1)
 
     def __str__(self):
         val = f"PC:{self.last_pc:04X} OP:{self.operand:04X} "
@@ -1299,7 +1300,7 @@ class Chip8CPU:
             self.sound_waveform.stop()
 
         # Generate a new waveform from the sample buffer
-        self.sound_waveform = pygame.mixer.Sound(np.array(buffer).astype(np.uint8))
+        self.sound_waveform = Sound(np.array(buffer).astype(np.uint8))
 
         # Start playing the sound again if we should be playing one
         if self.sound_playing:
