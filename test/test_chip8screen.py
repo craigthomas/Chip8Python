@@ -123,6 +123,18 @@ class TestChip8Screen(unittest.TestCase):
         self.assertFalse(self.screen.get_pixel(0, 1, 1))
         self.assertFalse(self.screen.get_pixel(0, 1, 2))
 
+    def test_scroll_up_bitplane_0_does_nothing(self):
+        self.screen.init_display()
+        self.screen.draw_pixel(0, 1, 1, 1)
+        self.screen.draw_pixel(0, 1, 1, 2)
+        self.assertTrue(self.screen.get_pixel(0, 1, 1))
+        self.assertTrue(self.screen.get_pixel(0, 1, 2))
+        self.screen.scroll_up(1, 0)
+        self.assertFalse(self.screen.get_pixel(0, 0, 1))
+        self.assertFalse(self.screen.get_pixel(0, 0, 2))
+        self.assertTrue(self.screen.get_pixel(0, 1, 1))
+        self.assertTrue(self.screen.get_pixel(0, 1, 2))
+
     def test_scroll_down_bitplane_1(self):
         self.screen.init_display()
         self.screen.draw_pixel(0, 0, 1, 1)
@@ -132,6 +144,17 @@ class TestChip8Screen(unittest.TestCase):
         self.assertFalse(self.screen.get_pixel(0, 0, 1))
         self.assertFalse(self.screen.get_pixel(0, 0, 2))
         self.assertTrue(self.screen.get_pixel(0, 1, 1))
+        self.assertFalse(self.screen.get_pixel(0, 1, 2))
+
+    def test_scroll_up_bitplane_1(self):
+        self.screen.init_display()
+        self.screen.draw_pixel(0, 1, 1, 1)
+        self.assertTrue(self.screen.get_pixel(0, 1, 1))
+        self.assertFalse(self.screen.get_pixel(0, 1, 2))
+        self.screen.scroll_up(1, 1)
+        self.assertTrue(self.screen.get_pixel(0, 0, 1))
+        self.assertFalse(self.screen.get_pixel(0, 0, 2))
+        self.assertFalse(self.screen.get_pixel(0, 1, 1))
         self.assertFalse(self.screen.get_pixel(0, 1, 2))
 
     def test_scroll_down_bitplane_1_both_pixels_active(self):
@@ -146,6 +169,18 @@ class TestChip8Screen(unittest.TestCase):
         self.assertTrue(self.screen.get_pixel(0, 1, 1))
         self.assertFalse(self.screen.get_pixel(0, 1, 2))
 
+    def test_scroll_up_bitplane_1_both_pixels_active(self):
+        self.screen.init_display()
+        self.screen.draw_pixel(0, 1, 1, 1)
+        self.screen.draw_pixel(0, 1, 1, 2)
+        self.assertTrue(self.screen.get_pixel(0, 1, 1))
+        self.assertTrue(self.screen.get_pixel(0, 1, 2))
+        self.screen.scroll_up(1, 1)
+        self.assertTrue(self.screen.get_pixel(0, 0, 1))
+        self.assertFalse(self.screen.get_pixel(0, 0, 2))
+        self.assertFalse(self.screen.get_pixel(0, 1, 1))
+        self.assertTrue(self.screen.get_pixel(0, 1, 2))
+
     def test_scroll_down_bitplane_3_both_pixels_active(self):
         self.screen.init_display()
         self.screen.draw_pixel(0, 0, 1, 1)
@@ -157,6 +192,18 @@ class TestChip8Screen(unittest.TestCase):
         self.assertFalse(self.screen.get_pixel(0, 0, 2))
         self.assertTrue(self.screen.get_pixel(0, 1, 1))
         self.assertTrue(self.screen.get_pixel(0, 1, 2))
+
+    def test_scroll_up_bitplane_3_both_pixels_active(self):
+        self.screen.init_display()
+        self.screen.draw_pixel(0, 1, 1, 1)
+        self.screen.draw_pixel(0, 1, 1, 2)
+        self.assertTrue(self.screen.get_pixel(0, 1, 1))
+        self.assertTrue(self.screen.get_pixel(0, 1, 2))
+        self.screen.scroll_up(1, 3)
+        self.assertTrue(self.screen.get_pixel(0, 0, 1))
+        self.assertTrue(self.screen.get_pixel(0, 0, 2))
+        self.assertFalse(self.screen.get_pixel(0, 1, 1))
+        self.assertFalse(self.screen.get_pixel(0, 1, 2))
 
     def test_scroll_right_bitplane_0_does_nothing(self):
         self.screen.init_display()

@@ -208,7 +208,7 @@ class Chip8Screen:
             for y in range(max_y - num_lines, max_y):
                 self.draw_pixel(x, y, False, bitplane)
 
-        # Start copying pixels from the top to the bottom and shift by 4 pixels
+        # Start copying pixels from the top to the bottom and shift by n pixels
         for x in range(max_x):
             for y in range(max_y - num_lines - 1, -1, -1):
                 current_pixel = self.get_pixel(x, y, bitplane)
@@ -218,6 +218,52 @@ class Chip8Screen:
         # Blank out any pixels in the first num_lines horizontal lines
         for x in range(max_x):
             for y in range(num_lines):
+                self.draw_pixel(x, y, False, bitplane)
+
+    def scroll_up(self, num_lines, bitplane):
+        """
+        Scroll the screen up by num_lines.
+
+        :param num_lines: the number of lines to scroll up
+        :param bitplane: the bitplane to scroll
+        """
+        if bitplane == 0:
+            return
+
+        mode_scale = 1 if self.mode == SCREEN_MODE_EXTENDED else 2
+        actual_lines = num_lines * mode_scale * self.scale_factor
+        if bitplane == 3:
+            self.surface.scroll(0, -actual_lines)
+            self.surface.fill(
+                self.pixel_colors[0],
+                (
+                    0,
+                    self.height * mode_scale * self.scale_factor - actual_lines,
+                    self.width * mode_scale * self.scale_factor,
+                    self.height * mode_scale * self.scale_factor
+                )
+            )
+            self.update()
+            return
+
+        max_x = self.get_width()
+        max_y = self.get_height()
+
+        # Blank out any pixels in the top n lines that we will copy to
+        for x in range(max_x):
+            for y in range(num_lines):
+                self.draw_pixel(x, y, False, bitplane)
+
+        # Start copying pixels from the top to the bottom and shift up by n pixels
+        for x in range(max_x):
+            for y in range(num_lines, max_y):
+                current_pixel = self.get_pixel(x, y, bitplane)
+                self.draw_pixel(x, y, False, bitplane)
+                self.draw_pixel(x, y - num_lines, current_pixel, bitplane)
+
+        # Blank out any pixels in the bottom num_lines horizontal lines
+        for x in range(max_x):
+            for y in range(max_y - num_lines, max_y):
                 self.draw_pixel(x, y, False, bitplane)
 
     def scroll_left(self, bitplane):

@@ -317,6 +317,10 @@ class Chip8CPU:
             num_lines = self.operand & 0x000F
             self.screen.scroll_down(num_lines, self.bitplane)
             self.last_op = f"Scroll Down {num_lines:01X}"
+        elif sub_operation == 0x00D0:
+            num_lines = self.operand & 0x000F
+            self.screen.scroll_up(num_lines, self.bitplane)
+            self.last_op = f"Scroll Up {num_lines:01X}"
         else:
             try:
                 self.clear_routines[operation]()
