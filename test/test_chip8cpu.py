@@ -917,6 +917,68 @@ class TestChip8CPU(unittest.TestCase):
         self.assertFalse(self.screen.get_pixel(6, 0, 2))
         self.assertFalse(self.screen.get_pixel(7, 0, 2))
 
+    def test_draw_sprite_extended_bitplane_1_integration_correct(self):
+        self.screen = Chip8Screen(2)
+        self.screen.init_display()
+        self.cpu = Chip8CPU(self.screen)
+
+        self.cpu.memory[0x0200] = 0xD0
+        self.cpu.memory[0x0201] = 0x00
+        self.cpu.memory[0x5000] = 0xAA
+        self.cpu.memory[0x5001] = 0x55
+        self.cpu.memory[0x5002] = 0xAA
+        self.cpu.memory[0x5003] = 0x55
+        self.cpu.memory[0x5004] = 0xAA
+        self.cpu.memory[0x5005] = 0x55
+        self.cpu.memory[0x5006] = 0xAA
+        self.cpu.memory[0x5007] = 0x55
+        self.cpu.memory[0x5008] = 0xAA
+        self.cpu.memory[0x5009] = 0x55
+        self.cpu.memory[0x500A] = 0xAA
+        self.cpu.memory[0x500B] = 0x55
+        self.cpu.memory[0x500C] = 0xAA
+        self.cpu.memory[0x500D] = 0x55
+        self.cpu.memory[0x500E] = 0xAA
+        self.cpu.memory[0x500F] = 0x55
+
+        self.cpu.index = 0x5000
+        self.cpu.bitplane = 1
+        self.cpu.execute_instruction()
+        self.assertTrue(self.screen.get_pixel(0, 0, 1))
+        self.assertFalse(self.screen.get_pixel(1, 0, 1))
+        self.assertTrue(self.screen.get_pixel(2, 0, 1))
+        self.assertFalse(self.screen.get_pixel(3, 0, 1))
+        self.assertTrue(self.screen.get_pixel(4, 0, 1))
+        self.assertFalse(self.screen.get_pixel(5, 0, 1))
+        self.assertTrue(self.screen.get_pixel(6, 0, 1))
+        self.assertFalse(self.screen.get_pixel(7, 0, 1))
+        self.assertFalse(self.screen.get_pixel(8, 0, 1))
+        self.assertTrue(self.screen.get_pixel(9, 0, 1))
+        self.assertFalse(self.screen.get_pixel(10, 0, 1))
+        self.assertTrue(self.screen.get_pixel(11, 0, 1))
+        self.assertFalse(self.screen.get_pixel(12, 0, 1))
+        self.assertTrue(self.screen.get_pixel(13, 0, 1))
+        self.assertFalse(self.screen.get_pixel(14, 0, 1))
+        self.assertTrue(self.screen.get_pixel(15, 0, 1))
+
+        # Second bitplane pattern
+        self.assertFalse(self.screen.get_pixel(0, 0, 2))
+        self.assertFalse(self.screen.get_pixel(1, 0, 2))
+        self.assertFalse(self.screen.get_pixel(2, 0, 2))
+        self.assertFalse(self.screen.get_pixel(3, 0, 2))
+        self.assertFalse(self.screen.get_pixel(4, 0, 2))
+        self.assertFalse(self.screen.get_pixel(5, 0, 2))
+        self.assertFalse(self.screen.get_pixel(6, 0, 2))
+        self.assertFalse(self.screen.get_pixel(7, 0, 2))
+        self.assertFalse(self.screen.get_pixel(8, 0, 2))
+        self.assertFalse(self.screen.get_pixel(9, 0, 2))
+        self.assertFalse(self.screen.get_pixel(10, 0, 2))
+        self.assertFalse(self.screen.get_pixel(11, 0, 2))
+        self.assertFalse(self.screen.get_pixel(12, 0, 2))
+        self.assertFalse(self.screen.get_pixel(13, 0, 2))
+        self.assertFalse(self.screen.get_pixel(14, 0, 2))
+        self.assertFalse(self.screen.get_pixel(15, 0, 2))
+
     def test_draw_sprite_normal_bitplane_2_integration_correct(self):
         self.screen = Chip8Screen(2)
         self.screen.init_display()
@@ -948,6 +1010,68 @@ class TestChip8CPU(unittest.TestCase):
         self.assertTrue(self.screen.get_pixel(5, 0, 2))
         self.assertFalse(self.screen.get_pixel(6, 0, 2))
         self.assertTrue(self.screen.get_pixel(7, 0, 2))
+
+    def test_draw_sprite_extended_bitplane_2_integration_correct(self):
+        self.screen = Chip8Screen(2)
+        self.screen.init_display()
+        self.cpu = Chip8CPU(self.screen)
+
+        self.cpu.memory[0x0200] = 0xD0
+        self.cpu.memory[0x0201] = 0x00
+        self.cpu.memory[0x5000] = 0xAA
+        self.cpu.memory[0x5001] = 0x55
+        self.cpu.memory[0x5002] = 0xAA
+        self.cpu.memory[0x5003] = 0x55
+        self.cpu.memory[0x5004] = 0xAA
+        self.cpu.memory[0x5005] = 0x55
+        self.cpu.memory[0x5006] = 0xAA
+        self.cpu.memory[0x5007] = 0x55
+        self.cpu.memory[0x5008] = 0xAA
+        self.cpu.memory[0x5009] = 0x55
+        self.cpu.memory[0x500A] = 0xAA
+        self.cpu.memory[0x500B] = 0x55
+        self.cpu.memory[0x500C] = 0xAA
+        self.cpu.memory[0x500D] = 0x55
+        self.cpu.memory[0x500E] = 0xAA
+        self.cpu.memory[0x500F] = 0x55
+
+        self.cpu.index = 0x5000
+        self.cpu.bitplane = 2
+        self.cpu.execute_instruction()
+        self.assertTrue(self.screen.get_pixel(0, 0, 2))
+        self.assertFalse(self.screen.get_pixel(1, 0, 2))
+        self.assertTrue(self.screen.get_pixel(2, 0, 2))
+        self.assertFalse(self.screen.get_pixel(3, 0, 2))
+        self.assertTrue(self.screen.get_pixel(4, 0, 2))
+        self.assertFalse(self.screen.get_pixel(5, 0, 2))
+        self.assertTrue(self.screen.get_pixel(6, 0, 2))
+        self.assertFalse(self.screen.get_pixel(7, 0, 2))
+        self.assertFalse(self.screen.get_pixel(8, 0, 2))
+        self.assertTrue(self.screen.get_pixel(9, 0, 2))
+        self.assertFalse(self.screen.get_pixel(10, 0, 2))
+        self.assertTrue(self.screen.get_pixel(11, 0, 2))
+        self.assertFalse(self.screen.get_pixel(12, 0, 2))
+        self.assertTrue(self.screen.get_pixel(13, 0, 2))
+        self.assertFalse(self.screen.get_pixel(14, 0, 2))
+        self.assertTrue(self.screen.get_pixel(15, 0, 2))
+
+        # Second bitplane pattern
+        self.assertFalse(self.screen.get_pixel(0, 0, 1))
+        self.assertFalse(self.screen.get_pixel(1, 0, 1))
+        self.assertFalse(self.screen.get_pixel(2, 0, 1))
+        self.assertFalse(self.screen.get_pixel(3, 0, 1))
+        self.assertFalse(self.screen.get_pixel(4, 0, 1))
+        self.assertFalse(self.screen.get_pixel(5, 0, 1))
+        self.assertFalse(self.screen.get_pixel(6, 0, 1))
+        self.assertFalse(self.screen.get_pixel(7, 0, 1))
+        self.assertFalse(self.screen.get_pixel(8, 0, 1))
+        self.assertFalse(self.screen.get_pixel(9, 0, 1))
+        self.assertFalse(self.screen.get_pixel(10, 0, 1))
+        self.assertFalse(self.screen.get_pixel(11, 0, 1))
+        self.assertFalse(self.screen.get_pixel(12, 0, 1))
+        self.assertFalse(self.screen.get_pixel(13, 0, 1))
+        self.assertFalse(self.screen.get_pixel(14, 0, 1))
+        self.assertFalse(self.screen.get_pixel(15, 0, 1))
 
     def test_draw_sprite_normal_bitplane_3_integration_correct(self):
         self.screen = Chip8Screen(2)
@@ -981,6 +1105,120 @@ class TestChip8CPU(unittest.TestCase):
         self.assertTrue(self.screen.get_pixel(5, 0, 2))
         self.assertFalse(self.screen.get_pixel(6, 0, 2))
         self.assertTrue(self.screen.get_pixel(7, 0, 2))
+
+    def test_draw_sprite_extended_bitplane_3_integration_correct(self):
+        self.screen = Chip8Screen(2)
+        self.screen.init_display()
+        self.cpu = Chip8CPU(self.screen)
+
+        self.cpu.memory[0x0200] = 0xD0
+        self.cpu.memory[0x0201] = 0x00
+
+        self.cpu.memory[0x5000] = 0xAA
+        self.cpu.memory[0x5001] = 0x55
+        self.cpu.memory[0x5002] = 0xAA
+        self.cpu.memory[0x5003] = 0x55
+        self.cpu.memory[0x5004] = 0xAA
+        self.cpu.memory[0x5005] = 0x55
+        self.cpu.memory[0x5006] = 0xAA
+        self.cpu.memory[0x5007] = 0x55
+        self.cpu.memory[0x5008] = 0xAA
+        self.cpu.memory[0x5009] = 0x55
+        self.cpu.memory[0x500A] = 0xAA
+        self.cpu.memory[0x500B] = 0x55
+        self.cpu.memory[0x500C] = 0xAA
+        self.cpu.memory[0x500D] = 0x55
+        self.cpu.memory[0x500E] = 0xAA
+        self.cpu.memory[0x500F] = 0x55
+
+        self.cpu.memory[0x5010] = 0x55
+        self.cpu.memory[0x5011] = 0xAA
+        self.cpu.memory[0x5012] = 0x55
+        self.cpu.memory[0x5013] = 0xAA
+        self.cpu.memory[0x5014] = 0x55
+        self.cpu.memory[0x5015] = 0xAA
+        self.cpu.memory[0x5016] = 0x55
+        self.cpu.memory[0x5017] = 0xAA
+        self.cpu.memory[0x5018] = 0x55
+        self.cpu.memory[0x5019] = 0xAA
+        self.cpu.memory[0x501A] = 0x55
+        self.cpu.memory[0x501B] = 0xAA
+        self.cpu.memory[0x501C] = 0x55
+        self.cpu.memory[0x501D] = 0xAA
+        self.cpu.memory[0x501E] = 0x55
+        self.cpu.memory[0x501F] = 0xAA
+
+        self.cpu.memory[0x5020] = 0x55
+        self.cpu.memory[0x5021] = 0xAA
+        self.cpu.memory[0x5022] = 0x55
+        self.cpu.memory[0x5023] = 0xAA
+        self.cpu.memory[0x5024] = 0x55
+        self.cpu.memory[0x5025] = 0xAA
+        self.cpu.memory[0x5026] = 0x55
+        self.cpu.memory[0x5027] = 0xAA
+        self.cpu.memory[0x5028] = 0x55
+        self.cpu.memory[0x5029] = 0xAA
+        self.cpu.memory[0x502A] = 0x55
+        self.cpu.memory[0x502B] = 0xAA
+        self.cpu.memory[0x502C] = 0x55
+        self.cpu.memory[0x502D] = 0xAA
+        self.cpu.memory[0x502E] = 0x55
+        self.cpu.memory[0x502F] = 0xAA
+
+        self.cpu.memory[0x5030] = 0xAA
+        self.cpu.memory[0x5031] = 0x55
+        self.cpu.memory[0x5032] = 0xAA
+        self.cpu.memory[0x5033] = 0x55
+        self.cpu.memory[0x5034] = 0xAA
+        self.cpu.memory[0x5035] = 0x55
+        self.cpu.memory[0x5036] = 0xAA
+        self.cpu.memory[0x5037] = 0x55
+        self.cpu.memory[0x5038] = 0xAA
+        self.cpu.memory[0x5039] = 0x55
+        self.cpu.memory[0x503A] = 0xAA
+        self.cpu.memory[0x503B] = 0x55
+        self.cpu.memory[0x503C] = 0xAA
+        self.cpu.memory[0x503D] = 0x55
+        self.cpu.memory[0x503E] = 0xAA
+        self.cpu.memory[0x503F] = 0x55
+
+        self.cpu.index = 0x5000
+        self.cpu.bitplane = 3
+        self.cpu.execute_instruction()
+        self.assertTrue(self.screen.get_pixel(0, 0, 1))
+        self.assertFalse(self.screen.get_pixel(1, 0, 1))
+        self.assertTrue(self.screen.get_pixel(2, 0, 1))
+        self.assertFalse(self.screen.get_pixel(3, 0, 1))
+        self.assertTrue(self.screen.get_pixel(4, 0, 1))
+        self.assertFalse(self.screen.get_pixel(5, 0, 1))
+        self.assertTrue(self.screen.get_pixel(6, 0, 1))
+        self.assertFalse(self.screen.get_pixel(7, 0, 1))
+        self.assertFalse(self.screen.get_pixel(8, 0, 1))
+        self.assertTrue(self.screen.get_pixel(9, 0, 1))
+        self.assertFalse(self.screen.get_pixel(10, 0, 1))
+        self.assertTrue(self.screen.get_pixel(11, 0, 1))
+        self.assertFalse(self.screen.get_pixel(12, 0, 1))
+        self.assertTrue(self.screen.get_pixel(13, 0, 1))
+        self.assertFalse(self.screen.get_pixel(14, 0, 1))
+        self.assertTrue(self.screen.get_pixel(15, 0, 1))
+
+        # Second bitplane pattern
+        self.assertFalse(self.screen.get_pixel(0, 0, 2))
+        self.assertTrue(self.screen.get_pixel(1, 0, 2))
+        self.assertFalse(self.screen.get_pixel(2, 0, 2))
+        self.assertTrue(self.screen.get_pixel(3, 0, 2))
+        self.assertFalse(self.screen.get_pixel(4, 0, 2))
+        self.assertTrue(self.screen.get_pixel(5, 0, 2))
+        self.assertFalse(self.screen.get_pixel(6, 0, 2))
+        self.assertTrue(self.screen.get_pixel(7, 0, 2))
+        self.assertTrue(self.screen.get_pixel(8, 0, 2))
+        self.assertFalse(self.screen.get_pixel(9, 0, 2))
+        self.assertTrue(self.screen.get_pixel(10, 0, 2))
+        self.assertFalse(self.screen.get_pixel(11, 0, 2))
+        self.assertTrue(self.screen.get_pixel(12, 0, 2))
+        self.assertFalse(self.screen.get_pixel(13, 0, 2))
+        self.assertTrue(self.screen.get_pixel(14, 0, 2))
+        self.assertFalse(self.screen.get_pixel(15, 0, 2))
 
     def test_draw_sprite_draws_correct_sprite(self):
         screen = Chip8Screen(2)

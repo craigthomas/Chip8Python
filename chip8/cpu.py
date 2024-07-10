@@ -867,8 +867,8 @@ class Chip8CPU:
 
         if num_bytes == 0:
             if self.bitplane == 3:
-                self.draw_extended(x_pos, y_pos, 1)
-                self.draw_extended(x_pos, y_pos, 2)
+                self.draw_extended(x_pos, y_pos, 1, index=self.index)
+                self.draw_extended(x_pos, y_pos, 2, index=self.index + 32)
             else:
                 self.draw_extended(x_pos, y_pos, self.bitplane)
             self.last_op = f"DRAWEX"
@@ -910,7 +910,7 @@ class Chip8CPU:
                         mask = mask >> 1
         self.screen.update()
 
-    def draw_extended(self, x_pos, y_pos, bitplane):
+    def draw_extended(self, x_pos, y_pos, bitplane, index=None):
         """
         Draws a sprite on the screen while in EXTENDED mode. Sprites in this
         mode are assumed to be 16x16 pixels. This means that two bytes will
@@ -920,10 +920,14 @@ class Chip8CPU:
         :param x_pos: the X position of the sprite
         :param y_pos: the Y position of the sprite
         :param bitplane: the bitplane to draw to
+        :param index: the memory index in memory where byte the pattern is stored
         """
+        if not index:
+            index = self.index
+
         for y_index in range(16):
             for x_byte in range(2):
-                color_byte = self.memory[self.index + (y_index * 2) + x_byte]
+                color_byte = self.memory[index + (y_index * 2) + x_byte]
                 y_coord = y_pos + y_index
                 if y_coord < self.screen.get_height():
                     y_coord = y_coord % self.screen.get_height()
