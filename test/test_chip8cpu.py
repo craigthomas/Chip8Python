@@ -852,6 +852,11 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.clear_return()
         self.screen.scroll_down.assert_called_with(4, 1)
 
+    def test_scroll_up_called(self):
+        self.cpu.operand = 0x00D4
+        self.cpu.clear_return()
+        self.screen.scroll_up.assert_called_with(4, 1)
+
     def test_scroll_right_called(self):
         self.cpu.operand = 0x00FB
         self.cpu.clear_return()
