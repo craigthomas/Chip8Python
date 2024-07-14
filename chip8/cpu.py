@@ -741,12 +741,12 @@ class Chip8CPU:
         x = (self.operand & 0x0F00) >> 8
         y = (self.operand & 0x00F0) >> 4
         if self.shift_quirks:
-            bit_seven = (self.v[x] & 0x80) >> 8
+            bit_seven = (self.v[x] & 0x80) >> 7
             self.v[x] = (self.v[x] << 1) & 0xFF
             self.v[0xF] = bit_seven
             self.last_op = f"SHL V{x:01X}"
         else:
-            bit_seven = (self.v[x] & 0x80) >> 8
+            bit_seven = (self.v[y] & 0x80) >> 7
             self.v[x] = (self.v[y] << 1) & 0xFF
             self.v[0xF] = bit_seven
             self.last_op = f"SHL V{x:01X}, V{y:01X}"
@@ -875,7 +875,7 @@ class Chip8CPU:
                 self.draw_extended(x_pos, y_pos, 2, index=self.index + 32)
             else:
                 self.draw_extended(x_pos, y_pos, self.bitplane)
-            self.last_op = f"DRAWEX"
+            self.last_op = f"DRAWEX V{x_source:01X}, V{y_source:01X}"
         else:
             if self.bitplane == 3:
                 self.draw_normal(x_pos, y_pos, num_bytes, 1, index=self.index)

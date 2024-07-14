@@ -6,6 +6,7 @@
 [![Releases](https://img.shields.io/github/release/craigthomas/Chip8Python?style=flat-square)](https://github.com/craigthomas/Chip8Python/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
+An Octo compatible OX Chip, Super Chip, and Chip 8 emulator.
 
 ## Table of Contents
 
@@ -34,17 +35,20 @@
 
 ## What is it?
 
-This project is a Chip 8 emulator written in Python 3.6+. The original purpose
+This project is a Chip 8 emulator written in Python 3. The original purpose
 of the project was to create a simple learning emulator that was well
 documented and coded in terms that were easy to understand. It was also an
 exercise to learn more about Python. The result is a simple command-line
 based Chip 8 emulator.
 
 In addition to supporting Chip 8 ROMs, the emulator also supports the
-Super Chip 8 instruction set. Note that no additional configuration is
-needed to run a Super Chip 8 ROM - simply run the ROM the same way you
-would run a normal Chip 8 ROM.
-
+[XO Chip](https://johnearnest.github.io/Octo/docs/XO-ChipSpecification.html) 
+and [Super Chip](https://github.com/JohnEarnest/Octo/blob/gh-pages/docs/SuperChip.md) specification.
+Note that while there are no special flags that are needed to run an XO Chip,
+Super Chip or normal Chip 8 ROM, there are other compatibility flags that
+may need to be set for the ROM to run properly. See the [Quirks Modes](#quirks-modes)
+documentation below for more information.
+ 
 There are two other versions of the emulator written in different languages:
 
 * [Chip8Java](https://github.com/craigthomas/Chip8Java)
@@ -154,11 +158,11 @@ versions of Python 3 are also likely to work correctly with the emulator.
     pip install virtualenvwrapper-win
     ```
 
-    2. Create a new environment for the Chip 8 emulator:
+   2. Create a new environment for the Chip 8 emulator:
 
-    ```
-    mkvirtualenv chip8
-    ```
+      ```
+      mkvirtualenv chip8
+      ```
 
 3. Install [Git for Windows](https://git-scm.com/download/win).
 
@@ -367,7 +371,20 @@ keys that impact the execution of the emulator.
 ## ROM Compatibility
 
 Here are the list of public domain ROMs and their current status with the emulator, along 
-with keypresses based on the default keymap:
+with links to public domain repositories where applicable.
+
+### Chip 8 ROMs
+
+|                                         ROM Name                                         | Working            |     Flags     |
+|:----------------------------------------------------------------------------------------:|:------------------:|:-------------:|
+|   [Animal Race [Brian Astle]](https://github.com/kripod/chip8-roms/tree/master/games)    | :heavy_check_mark: |               |
+|   [Blitz [David Winter]](https://github.com/kripod/chip8-roms/tree/master/games)         | :heavy_check_mark: | `clip_quirks` |     
+| [Bowling [Gooitzen van der Wal]](https://github.com/kripod/chip8-roms/tree/master/games) |  
+
+### Super Chip ROMs
+
+
+### XO Chip ROMs
 
 | ROM Name                                                                                          |      Working       |     Flags      | Notes                                                                                       |
 |:--------------------------------------------------------------------------------------------------|:------------------:|:--------------:|---------------------------------------------------------------------------------------------|
