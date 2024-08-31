@@ -274,14 +274,14 @@ class Chip8CPU:
 
         # Skip if the key specified in the source register is pressed
         if operation == 0x9E:
-            if keys_pressed[KEY_MAPPINGS[key_to_check]]:
+            if key_to_check <= 0xF and keys_pressed[KEY_MAPPINGS[key_to_check]]:
                 self.pc += 2
                 if self.memory[self.pc - 2] == 0xF0 and self.memory[self.pc - 1] == 0x00:
                     self.pc += 2
 
         # Skip if the key specified in the source register is not pressed
         if operation == 0xA1:
-            if not keys_pressed[KEY_MAPPINGS[key_to_check]]:
+            if key_to_check <= 0xF and  not keys_pressed[KEY_MAPPINGS[key_to_check]]:
                 self.pc += 2
                 if self.memory[self.pc - 2] == 0xF0 and self.memory[self.pc - 1] == 0x00:
                     self.pc += 2
