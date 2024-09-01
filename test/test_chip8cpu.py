@@ -428,7 +428,7 @@ class TestChip8CPU(unittest.TestCase):
                     self.cpu.v[y] = value
                     self.cpu.operand = x << 8
                     self.cpu.operand |= y << 4
-                    bit_seven = (value & 0x80) >> 8
+                    bit_seven = (value & 0x80) >> 7
                     shifted_val = (value << 1) & 0xFF
                     self.cpu.v[0xF] = 0
                     self.cpu.left_shift_reg()
@@ -443,7 +443,7 @@ class TestChip8CPU(unittest.TestCase):
                 self.cpu.operand = x << 8
                 shifted_val = value
                 for index in range(1, 8):
-                    bit_seven = (shifted_val & 0x80) >> 8
+                    bit_seven = (shifted_val & 0x80) >> 7
                     shifted_val = (value << index) & 0xFF
                     self.cpu.v[0xF] = 0
                     self.cpu.left_shift_reg()
