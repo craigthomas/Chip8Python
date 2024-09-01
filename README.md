@@ -6,7 +6,7 @@
 [![Releases](https://img.shields.io/github/release/craigthomas/Chip8Python?style=flat-square)](https://github.com/craigthomas/Chip8Python/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-An Octo compatible OX Chip, Super Chip, and Chip 8 emulator.
+An Octo compatible XO Chip, Super Chip, and Chip 8 emulator.
 
 ## Table of Contents
 
