@@ -699,7 +699,7 @@ class Chip8CPU:
             self.v[0xF] = bit_one
             self.last_op = f"SHR V{x:01X}"
         else:
-            bit_one = self.v[x] & 0x1
+            bit_one = self.v[y] & 0x1
             self.v[x] = self.v[y] >> 1
             self.v[0xF] = bit_one
             self.last_op = f"SHR V{x:01X}, V{y:01X}"
