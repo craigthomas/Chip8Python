@@ -399,6 +399,15 @@ class TestChip8CPU(unittest.TestCase):
                     self.assertEqual(self.cpu.v[x], shifted_val)
                     self.assertEqual(self.cpu.v[0xF], bit_zero)
 
+    def test_right_shift_reg_y_bug(self):
+        self.cpu.shift_quirks = False
+        self.cpu.operand = 0x0120
+        self.cpu.v[1] = 0
+        self.cpu.v[2] = 1
+        self.cpu.right_shift_reg()
+        self.assertEqual(0, self.cpu.v[1])
+        self.assertEqual(1, self.cpu.v[0xF])
+
     def test_subtract_reg_from_reg1(self):
         for x in range(0xF):
             for y in range(0xF):
