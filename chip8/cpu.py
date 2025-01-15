@@ -84,7 +84,8 @@ class Chip8CPU:
             jump_quirks=False,
             clip_quirks=False,
             logic_quirks=False,
-            mem_size="64K"
+            mem_size="64K",
+            max_ticks=1000,
     ):
         """
         Initialize the Chip8 CPU. The only required parameter is a screen
@@ -98,6 +99,7 @@ class Chip8CPU:
         :param clip_quirks: enables screen clipping quirks
         :param logic_quirks: enables logic quirks
         :param mem_size: sets the maximum memory available "4K" or "64K"
+        :param max_ticks: sets the maximum allowable operations per second
         """
         self.last_pc = 0x0000
         self.last_op = "None"
@@ -108,6 +110,11 @@ class Chip8CPU:
         self.sp = STACK_POINTER_START
         self.index = 0
         self.rpl = [0] * NUM_REGISTERS
+
+        self.tick_counter = 0
+        self.max_ticks = max_ticks
+        if self.max_ticks < 200:
+            self.max_ticks = 200
 
         self.pitch = 64
         self.playback_rate = 4000
@@ -226,6 +233,9 @@ class Chip8CPU:
         :param operand: the operand to execute
         :return: returns the operand executed
         """
+        if self.tick_counter > self.max_ticks:
+            return None
+
         self.last_pc = self.pc
         if operand:
             self.operand = operand
@@ -236,6 +246,7 @@ class Chip8CPU:
             self.pc += 2
         operation = (self.operand & 0xF000) >> 12
         self.operation_lookup[operation]()
+        self.tick_counter += 1
         return self.operand
 
     def execute_logical_instruction(self):
@@ -1249,6 +1260,7 @@ class Chip8CPU:
         self.sound_playing = False
         self.sound_waveform = None
         self.bitplane = 1
+        self.tick_counter = 0
 
     def load_rom(self, filename, offset=PROGRAM_COUNTER_START):
         """
@@ -1269,6 +1281,8 @@ class Chip8CPU:
         """
         Decrement both the sound and delay timer.
         """
+        self.tick_counter = 0
+
         self.delay -= 1 if self.delay > 0 else 0
         self.sound -= 1 if self.delay > 0 else 0
         if self.sound > 0 and not self.sound_playing:

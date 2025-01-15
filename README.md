@@ -207,18 +207,14 @@ scale is 64 x 32):
 The command above will scale the window so that it is 10 times the normal
 size.
 
-### Execution Delay
+### Instructions Per Second
 
-You may also wish to experiment with the `--delay` switch, which instructs
-the emulator to add a delay to every operation that is executed. For example,
+The `--ticks` switch will limit the number of instructions per second that the 
+emulator is allowed to run. By default, the value is set to 1,000. Minimum values 
+are 200. Use this switch to adjust the running time of ROMs that execute too quickly. 
+For simplicity, each instruction is assumed to take the same amount of time.
 
-    python yac8e.py /path/to/rom/filename --delay 10
-
-The command above will add a 10 ms delay to every opcode that is executed.
-This is useful for very fast computers (note that it is difficult to find
-information regarding opcode execution times, as such, I have not attempted
-any fancy timing mechanisms to ensure that instructions are executed in a
-set amount of time).
+    python yac8e.py /path/to/rom/filename --ticks 2000   
 
 ### Quirks Modes
 
