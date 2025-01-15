@@ -18,7 +18,7 @@ An Octo compatible XO Chip, Super Chip, and Chip 8 emulator.
 4. [Running](#running)
    1. [Running a ROM](#running-a-rom)
    2. [Screen Scale](#screen-scale)
-   3. [Execution Delay](#execution-delay)
+   3. [Instructions Per Second](#instructions-per-second)
    4. [Quirks Modes](#quirks-modes)
       1. [Shift Quirks](#shift-quirks) 
       2. [Index Quirks](#index-quirks)
