@@ -33,9 +33,8 @@ def parse_arguments():
         "--scale", help="the scale factor to apply to the display "
         "(default is 5)", type=int, default=5, dest="scale")
     parser.add_argument(
-        "--delay", help="sets the CPU operation to take at least "
-        "the specified number of milliseconds to execute (default is 1)",
-        type=int, default=1, dest="op_delay")
+        "--ticks", help="how many instructions per second are allowed",
+        type=int, default=1000, dest="ticks")
     parser.add_argument(
         "--shift_quirks", help="Enable shift quirks",
         action="store_true", dest="shift_quirks"

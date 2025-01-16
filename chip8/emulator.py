@@ -22,6 +22,7 @@ def main_loop(args):
     :param args: the parsed command-line arguments
     """
     delay_timer_event = 24
+    max_ticks = int(args.ticks / 60)
 
     screen = Chip8Screen(
         scale_factor=args.scale,
@@ -39,6 +40,7 @@ def main_loop(args):
         clip_quirks=args.clip_quirks,
         logic_quirks=args.logic_quirks,
         mem_size=args.mem_size,
+        max_ticks=max_ticks
     )
     cpu.load_rom(FONT_FILE, 0)
     cpu.load_rom(args.rom)
@@ -47,8 +49,6 @@ def main_loop(args):
     pygame.time.set_timer(delay_timer_event, 17)
 
     while cpu.running:
-        pygame.time.wait(args.op_delay)
-
         if not cpu.awaiting_keypress:
             cpu.execute_instruction()
 
