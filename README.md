@@ -30,8 +30,7 @@ An Octo compatible XO Chip, Super Chip, and Chip 8 emulator.
 5. [Customization](#customization)
    1. [Keys](#keys)
    2. [Debug Keys](#debug-keys)
-6. [ROM Compatibility](#rom-compatibility)
-7. [Further Documentation](#further-documentation)
+6. [Further Documentation](#further-documentation)
 
 ## What is it?
 
