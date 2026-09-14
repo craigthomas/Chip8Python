@@ -132,6 +132,7 @@ class Chip8CPU:
 
         self.awaiting_keypress = False
         self.keypress_register = None
+        self.keypress_pending = None
 
         # The operation_lookup table is executed according to the most
         # significant byte of the operand (e.g. operand 8nnn would call
@@ -815,9 +816,11 @@ class Chip8CPU:
                     B         x        n         n
         """
         if self.jump_quirks:
+            # The whole twelve bit address is used; its top nibble also
+            # names the register, so BE9C with vE at 4 jumps to 0xEA0.
             x = (self.operand & 0x0F00) >> 8
-            self.pc = self.v[x] + (self.operand & 0x00FF)
-            self.last_op = f"JUMP V{x:01X} + {self.operand & 0x0FF:03X}"
+            self.pc = self.v[x] + (self.operand & 0x0FFF)
+            self.last_op = f"JUMP V{x:01X} + {self.operand & 0x0FFF:03X}"
         else:
             self.pc = self.v[0] + (self.operand & 0x0FFF)
             self.last_op = f"JUMP V0 + {self.operand & 0x0FFF:03X}"
@@ -908,6 +911,11 @@ class Chip8CPU:
         if not index:
             index = self.index
 
+        # The starting position always wraps around the screen. Clipping only
+        # decides what happens to the part of the sprite past the edge.
+        x_pos = x_pos % self.screen.get_width()
+        y_pos = y_pos % self.screen.get_height()
+
         for y_index in range(num_bytes):
             color_byte = self.memory[index + y_index]
             y_coord = y_pos + y_index
@@ -939,6 +947,10 @@ class Chip8CPU:
         """
         if not index:
             index = self.index
+
+        # As in draw_normal: the start wraps, clipping applies to the overhang.
+        x_pos = x_pos % self.screen.get_width()
+        y_pos = y_pos % self.screen.get_height()
 
         for y_index in range(16):
             for x_byte in range(2):
@@ -1032,6 +1044,7 @@ class Chip8CPU:
         x = (self.operand & 0x0F00) >> 8
         self.awaiting_keypress = True
         self.keypress_register = x
+        self.keypress_pending = None
         self.last_op = f"KEYD V{x:01X}"
 
     def decode_keypress_and_continue(self, keys_pressed):
@@ -1044,8 +1057,26 @@ class Chip8CPU:
         """
         for keyval, lookup_key in KEY_MAPPINGS.items():
             if keys_pressed[lookup_key]:
-                self.v[self.keypress_register] = keyval
-                self.awaiting_keypress = False
+                # The original hardware moves on when the key is released,
+                # not when it goes down, so the key is only remembered here.
+                self.keypress_pending = keyval
+                return
+
+    def decode_keyrelease_and_continue(self, keys_pressed):
+        """
+        Given a set of keys pressed, checks whether the key remembered by
+        decode_keypress_and_continue has been released, and if it has,
+        stores it in the register specified by wait_for_keypress and flags
+        the CPU to continue executing.
+
+        :param keys_pressed: the list of keys pressed
+        """
+        if self.keypress_pending is None:
+            return
+        if not keys_pressed[KEY_MAPPINGS[self.keypress_pending]]:
+            self.v[self.keypress_register] = self.keypress_pending
+            self.keypress_pending = None
+            self.awaiting_keypress = False
 
     def move_reg_into_delay_timer(self):
         """
@@ -1284,7 +1315,7 @@ class Chip8CPU:
         self.tick_counter = 0
 
         self.delay -= 1 if self.delay > 0 else 0
-        self.sound -= 1 if self.delay > 0 else 0
+        self.sound -= 1 if self.sound > 0 else 0
         if self.sound > 0 and not self.sound_playing:
             if self.sound_waveform:
                 self.sound_waveform.play(loops=-1)
