@@ -508,7 +508,17 @@ class TestChip8CPU(unittest.TestCase):
                     self.cpu.operand = value
                     self.cpu.operand |= (register << 8)
                     self.cpu.jump_to_register_plus_value()
-                    self.assertEqual(index + value, self.cpu.pc)
+                    # The whole twelve bit address counts, including the
+                    # nibble that names the register, which is what the
+                    # jump row of Timendus' quirks test checks.
+                    self.assertEqual(index + ((register << 8) | value), self.cpu.pc)
+
+    def test_jump_to_index_plus_value_quirks_keeps_high_nibble(self):
+        self.cpu.jump_quirks = True
+        self.cpu.v[0xE] = 0x9C
+        self.cpu.operand = 0xBE00
+        self.cpu.jump_to_register_plus_value()
+        self.assertEqual(0xE9C, self.cpu.pc)
 
     def test_generate_random_number(self):
         for register in range(0x10):
@@ -716,6 +726,13 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.sound = 2
         self.cpu.decrement_timers()
         self.assertEqual(1, self.cpu.delay)
+        self.assertEqual(1, self.cpu.sound)
+
+    def test_decrement_timers_sound_counts_down_while_delay_is_zero(self):
+        self.cpu.delay = 0
+        self.cpu.sound = 2
+        self.cpu.decrement_timers()
+        self.assertEqual(0, self.cpu.delay)
         self.assertEqual(1, self.cpu.sound)
 
     def test_decrement_timers_does_not_go_negative(self):
@@ -930,6 +947,23 @@ class TestChip8CPU(unittest.TestCase):
         self.assertFalse(self.screen.get_pixel(5, 0, 2))
         self.assertFalse(self.screen.get_pixel(6, 0, 2))
         self.assertFalse(self.screen.get_pixel(7, 0, 2))
+
+    def test_draw_sprite_normal_start_wraps_even_with_clip_quirks(self):
+        self.screen = Chip8Screen(2)
+        self.screen.init_display()
+        self.cpu = Chip8CPU(self.screen, clip_quirks=True)
+
+        # A sprite at (70, 40) on a 64 by 32 screen starts at (6, 8). Only
+        # the part that hangs past an edge is clipped.
+        self.cpu.memory[0x0200] = 0xD0
+        self.cpu.memory[0x0201] = 0x11
+        self.cpu.memory[0x5000] = 0x80
+        self.cpu.index = 0x5000
+        self.cpu.v[0] = 70
+        self.cpu.v[1] = 40
+        self.cpu.bitplane = 1
+        self.cpu.execute_instruction()
+        self.assertTrue(self.screen.get_pixel(6, 8, 1))
 
     def test_draw_sprite_extended_bitplane_1_integration_correct(self):
         self.screen = Chip8Screen(2)
@@ -1352,6 +1386,28 @@ class TestChip8CPU(unittest.TestCase):
         self.cpu.operand = 0x0100
         self.cpu.wait_for_keypress()
         self.assertEqual(1, self.cpu.keypress_register)
+        self.assertTrue(self.cpu.awaiting_keypress)
+
+    def test_wait_for_keypress_continues_on_release_not_press(self):
+        self.cpu.operand = 0x0100
+        self.cpu.wait_for_keypress()
+        pressed = [False] * 512
+        pressed[pygame.K_w] = True
+        self.cpu.decode_keypress_and_continue(pressed)
+        self.assertTrue(self.cpu.awaiting_keypress)
+        self.assertEqual(0, self.cpu.v[1])
+        released = [False] * 512
+        self.cpu.decode_keyrelease_and_continue(released)
+        self.assertFalse(self.cpu.awaiting_keypress)
+        self.assertEqual(0x5, self.cpu.v[1])
+
+    def test_wait_for_keypress_release_of_another_key_does_not_continue(self):
+        self.cpu.operand = 0x0100
+        self.cpu.wait_for_keypress()
+        pressed = [False] * 512
+        pressed[pygame.K_w] = True
+        self.cpu.decode_keypress_and_continue(pressed)
+        self.cpu.decode_keyrelease_and_continue(pressed)
         self.assertTrue(self.cpu.awaiting_keypress)
 
     def test_store_subset_regs_one_two(self):

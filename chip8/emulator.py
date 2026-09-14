@@ -67,5 +67,8 @@ def main_loop(args):
                     cpu.running = False
                 if cpu.awaiting_keypress:
                     cpu.decode_keypress_and_continue(keys_pressed)
+            if event.type == pygame.KEYUP:
+                if cpu.awaiting_keypress:
+                    cpu.decode_keyrelease_and_continue(pygame.key.get_pressed())
 
 # E N D   O F   F I L E #######################################################
